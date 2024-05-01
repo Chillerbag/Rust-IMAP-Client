@@ -10,9 +10,8 @@ pub fn login(stream: &mut TcpStream, command_id: &mut String, username: &str, pa
     let mut response = String::new();
 
     // logging in 
-    let full_command = format!("{} LOGIN {} {}", &command_id, &username, &password);
+    let full_command = format!("{} LOGIN {} {} \r\n", &command_id, &username, &password);
     stream.write_all(full_command.as_bytes());
-    stream.write_all(b"\r\n");
     if let Err(_) = stream.read_to_string(&mut response) {
         println!("Login failure\n");
         process::exit(3);
@@ -27,10 +26,9 @@ pub fn login(stream: &mut TcpStream, command_id: &mut String, username: &str, pa
     // selecting the folder
 
     // todo: if no folder is provided, read from inbox
-    let full_command = format!("{} SELECT {} ", &command_id, folder);
+    let full_command = format!("{} SELECT {} \r\n", &command_id, folder);
     response.clear();
     stream.write_all(full_command.as_bytes());
-    stream.write_all(b"\r\n");
     if let Err(_) = stream.read_to_string(&mut response) {
         println!("Folder not found\n");
         process::exit(3);
