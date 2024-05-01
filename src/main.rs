@@ -1,4 +1,7 @@
 use std::env;
+use std::net::{TcpStream};
+use crate::socketMaker::make_socket;
+mod socketMaker; 
 
 fn main() {
     // get command-line arguments
@@ -49,6 +52,14 @@ fn main() {
     println!("Message Number: {}", message_num);
     println!("Command: {}", command);
     println!("Server Name: {}", server_name);
+
+
+    // get the socket 
+    let socket = make_socket(server_name);
+
+    // then login 
+
+
 }
 
  
