@@ -26,7 +26,7 @@ fn main() {
 
     let mut command_number: u32 = 1;
 
-    command_id = format!("A{:03}", command_number);
+    command_id = format!("A{}", command_number);
 
 
 

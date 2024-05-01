@@ -11,32 +11,49 @@ pub fn login(stream: &mut TcpStream, command_id: &mut String, username: &str, pa
 
     // logging in 
     let full_command = format!("{} LOGIN {} {} \r\n", &command_id, &username, &password);
-    stream.write_all(full_command.as_bytes());
+
+    // testing
+    println!("{}", full_command);
+    match stream.write(full_command.as_bytes()) {
+        Ok(_) => {},
+        Err(err) => {
+            eprintln!("Error writing to stream: {}", err);
+            process::exit(1);
+        }
+    }
+    // prints up to here:
+    println!("successfully written");
+
+    // hangs here:
     if let Err(_) = stream.read_to_string(&mut response) {
         println!("Login failure\n");
         process::exit(3);
     }
-    stream.read_to_string(&mut response);
+
+    println!("successfully read to response");
+    //stream.read_to_string(&mut response);
     println!("Response: {}", response);
 
     // command of logging is executed, so increment
     *command_number += 1;
-    *command_id = format!("A{:03}", *command_number);
+    *command_id = format!("A{}", *command_number);
 
     // selecting the folder
 
     // todo: if no folder is provided, read from inbox
     let full_command = format!("{} SELECT {} \r\n", &command_id, folder);
     response.clear();
-    stream.write_all(full_command.as_bytes());
-    if let Err(_) = stream.read_to_string(&mut response) {
-        println!("Folder not found\n");
-        process::exit(3);
+    match stream.write_all(full_command.as_bytes()) {
+        Ok(_) => {},
+        Err(err) => {
+            eprintln!("Error writing to stream: {}", err);
+            process::exit(1);
+        }
     }
-    stream.read_to_string(&mut response);
+    //stream.read_to_string(&mut response);
     println!("Response: {}", response);
 
     *command_number += 1;
-    *command_id = format!("A{:03}", *command_number);
+    *command_id = format!("A{}", *command_number);
 
 }
