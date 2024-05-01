@@ -1,7 +1,11 @@
 use std::env;
 use std::net::{TcpStream};
 use crate::socketMaker::make_socket;
-mod socketMaker; 
+use crate::Login::login;
+mod socketMaker;
+mod Login; 
+
+
 
 fn main() {
     // get command-line arguments
@@ -14,6 +18,17 @@ fn main() {
     let mut message_num = String::new();
     let mut command: String = String::new();
     let mut server_name: String = String::new();
+
+
+    // for the tag for each command 
+
+    let mut command_id: String; 
+
+    let mut command_number: u32 = 1;
+
+    command_id = format!("A{:03}", command_number);
+
+
 
     // iterate over args and assign them to their strings using .clone()
     let mut i = 1;
@@ -55,9 +70,20 @@ fn main() {
 
 
     // get the socket 
-    let socket = make_socket(server_name);
+    let mut socket = make_socket(server_name);
+    println!("Connection successful!");
+
 
     // then login 
+
+    login(&mut socket, &mut command_id, &username, &password, &folder, &mut command_number);
+
+
+    // then we send commands passed in the command line HERE and have some function to handle the output 
+
+
+
+    
 
 
 }
