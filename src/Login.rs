@@ -19,7 +19,7 @@ pub fn login(stream: &mut TcpStream, command_id: &mut String, username: &str, pa
 
     let mut reader = BufReader::new(stream.try_clone().expect("error cloning stream"));
     match reader.read_line(&mut response) {
-        Ok(_) => println!("Server response to login: {}", response),
+        Ok(_) => println!("Server response to connection: {}", response),
         Err(err) => {
             eprintln!("Error reading from stream: {}", err);
             process::exit(1);
@@ -66,7 +66,7 @@ pub fn login(stream: &mut TcpStream, command_id: &mut String, username: &str, pa
 
     // TODO: if no folder is provided, read from inbox
 
-    let full_command = format!("\n{} SELECT {} \r\n", command_id, folder);
+    let full_command = format!("{} SELECT {} \r\n", command_id, folder);
     println!("command being written: {}", full_command);
 
     match stream.write_all(full_command.as_bytes()) {
