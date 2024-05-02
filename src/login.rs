@@ -1,9 +1,7 @@
 use std::net::TcpStream;
-use std::io::Write;
-use std::process;
-use std::io::{BufRead, BufReader};
-use crate::sendAndReceive::read_response;
-use crate::sendAndReceive::send_command;
+use std::io::BufReader;
+use crate::send_and_receive::read_response;
+use crate::send_and_receive::send_command;
 
 // TODO probably want to return result here and deal with possible errors
 // actually, spec says to do this in main
@@ -33,7 +31,6 @@ pub fn login(stream: &mut TcpStream, command_id: &mut String, username: &str, pa
     *command_id = format!("A{}", *command_number);
 
     // ------------------------- selecting the folder ----------------------------
-
 
     // write select folder command to server
     let full_command = format!("{} SELECT {} \r\n", command_id, folder);

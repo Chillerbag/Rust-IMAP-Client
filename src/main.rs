@@ -1,10 +1,9 @@
 use std::env;
-use std::net::{TcpStream};
-use crate::socketMaker::make_socket;
-use crate::Login::login;
-mod socketMaker;
-mod Login; 
-mod sendAndReceive;
+use crate::socket_maker::make_socket;
+use crate::login::login;
+mod socket_maker;
+mod login; 
+mod send_and_receive;
 
 // --------------- ALL TODOS -----------------
 
