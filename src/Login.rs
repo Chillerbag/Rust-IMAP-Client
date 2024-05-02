@@ -34,7 +34,6 @@ pub fn login(stream: &mut TcpStream, command_id: &mut String, username: &str, pa
 
     // ------------------------- selecting the folder ----------------------------
 
-    // TODO: if no folder is provided, read from inbox
 
     // write select folder command to server
     let full_command = format!("{} SELECT {} \r\n", command_id, folder);

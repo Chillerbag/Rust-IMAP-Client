@@ -8,14 +8,13 @@ mod sendAndReceive;
 
 // --------------- ALL TODOS -----------------
 
-// 1) make a file for sending commands to IMAP server. This is a general purpose thing so we can avoid code reuse
+// 1) make a file for sending commands to IMAP server. This is a general purpose thing so we can avoid code reuse -- done!
 // 2) prioritise if we are an ipv6. Dunno how
 // 3) when folder is undefined, read from "Inbox" folder
 // 4) handle the Err case of Result<> in main, probably. ( I haven't a fucking clue how to do this)
-// 5) part of 4, but error with code 3 when certain things dont exist. Does READ ed response to this https://edstem.org/au/courses/15616/discussion/1944353
+// 5) part of 4, but error with code 3 when certain things dont exist in login (read spec). READ ed response to this https://edstem.org/au/courses/15616/discussion/1944353
 
 // -------------------------------------------
-
 
 fn main() {
     // get command-line arguments
@@ -29,16 +28,10 @@ fn main() {
     let mut command: String = String::new();
     let mut server_name: String = String::new();
 
-
     // for the tag for each command 
-
     let mut command_id: String; 
-
     let mut command_number: u32 = 1;
-
     command_id = format!("A{}", command_number);
-
-
 
     // iterate over args and assign them to their strings using .clone()
     let mut i = 1;
@@ -78,14 +71,11 @@ fn main() {
     println!("Command: {}", command);
     println!("Server Name: {}", server_name);
 
-
     // get the socket 
     let mut socket = make_socket(server_name);
     println!("Connection successful!");
 
-
     // then login 
-
     login(&mut socket, &mut command_id, &username, &password, &folder, &mut command_number);
 
 
