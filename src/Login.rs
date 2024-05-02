@@ -17,6 +17,17 @@ pub fn login(stream: &mut TcpStream, command_id: &mut String, username: &str, pa
     let full_command = format!("{} LOGIN {} {} \r\n", &command_id, &username, &password);
     println!("command being writen: {}", full_command);
 
+    let mut reader = BufReader::new(stream.try_clone().expect("error cloning stream"));
+    match reader.read_line(&mut response) {
+        Ok(_) => println!("Server response to login: {}", response),
+        Err(err) => {
+            eprintln!("Error reading from stream: {}", err);
+            process::exit(1);
+        }
+    }
+
+    response.clear();
+
     // Write command to server
     match stream.write_all(full_command.as_bytes()) {
         Ok(_) => println!("Successfully written login command"),
@@ -30,7 +41,7 @@ pub fn login(stream: &mut TcpStream, command_id: &mut String, username: &str, pa
     response.clear();
 
     // Read server response until end of line
-    let mut reader = BufReader::new(stream.try_clone().expect("error cloning stream"));
+    //let mut reader = BufReader::new(stream.try_clone().expect("error cloning stream"));
     match reader.read_line(&mut response) {
         Ok(_) => println!("Server response to login: {}", response),
         Err(err) => {
@@ -55,7 +66,7 @@ pub fn login(stream: &mut TcpStream, command_id: &mut String, username: &str, pa
 
     // TODO: if no folder is provided, read from inbox
 
-    let full_command = format!("\n{} PLUNKO {} \r\n", command_id, folder);
+    let full_command = format!("\n{} SELECT {} \r\n", command_id, folder);
     println!("command being written: {}", full_command);
 
     match stream.write_all(full_command.as_bytes()) {
