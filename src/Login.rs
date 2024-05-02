@@ -1,93 +1,48 @@
-use std::net::{TcpStream};
-use std::io::{Read, Write};
+use std::net::TcpStream;
+use std::io::Write;
 use std::process;
 use std::io::{BufRead, BufReader};
-
+use crate::sendAndReceive::read_response;
+use crate::sendAndReceive::send_command;
 
 // TODO probably want to return result here and deal with possible errors
-// actually, spec says to do this in mean
-// TODO put in general stream writing and reading behaviour in a seperate function
+// actually, spec says to do this in main
+// TODO put in general stream writing and reading behaviour in a seperate function -- done!
 
 
 pub fn login(stream: &mut TcpStream, command_id: &mut String, username: &str, password: &str, folder: &str, command_number: &mut u32){
+
+    let mut reader = BufReader::new(stream.try_clone().expect("error cloning stream"));
     let mut response = String::new();
 
     // -------------------------------- logging in --------------------------------
 
+    // read the initial response to the connection
+    read_response(& mut reader, &mut response);
+
+    // Write login command to server
     let full_command = format!("{} LOGIN {} {} \r\n", &command_id, &username, &password);
     println!("command being writen: {}", full_command);
-
-    let mut reader = BufReader::new(stream.try_clone().expect("error cloning stream"));
-    match reader.read_line(&mut response) {
-        Ok(_) => println!("Server response to connection: {}", response),
-        Err(err) => {
-            eprintln!("Error reading from stream: {}", err);
-            process::exit(1);
-        }
-    }
-
-    response.clear();
-
-    // Write command to server
-    match stream.write_all(full_command.as_bytes()) {
-        Ok(_) => println!("Successfully written login command"),
-        Err(err) => {
-            eprintln!("Error writing to stream: {}", err);
-            process::exit(1);
-        }
-    }
-
-    // clear response or it cries idk
-    response.clear();
+    send_command(stream, full_command);
 
     // Read server response until end of line
-    //let mut reader = BufReader::new(stream.try_clone().expect("error cloning stream"));
-    match reader.read_line(&mut response) {
-        Ok(_) => println!("Server response to login: {}", response),
-        Err(err) => {
-            eprintln!("Error reading from stream: {}", err);
-            process::exit(1);
-        }
-    }
-
-    response.clear();
+    read_response(& mut reader, &mut response);
 
     // command of logging is executed, so increment
     *command_number += 1;
     *command_id = format!("A{}", *command_number);
-    println!("{}", command_id);
-
-    // ---------------------------------------------------------------------------
-
-
-    
 
     // ------------------------- selecting the folder ----------------------------
 
     // TODO: if no folder is provided, read from inbox
 
+    // write select folder command to server
     let full_command = format!("{} SELECT {} \r\n", command_id, folder);
     println!("command being written: {}", full_command);
+    send_command(stream, full_command);
 
-    match stream.write_all(full_command.as_bytes()) {
-        Ok(_) => println!("Successfully written select folder command"),
-        Err(err) => {
-            eprintln!("Error writing to stream: {}", err);
-            process::exit(1);
-        }
-    }
-
-    //response.clear();
-
-    // Read server response until end of line
-    //let mut reader = BufReader::new(stream.try_clone().expect("error cloning stream"));
-    match reader.read_line(&mut response) {
-        Ok(_) => println!("Server response to folder selection: {}", response),
-        Err(err) => {
-            eprintln!("Error reading from stream: {}", err);
-            process::exit(1);
-        }
-    }
+    // Read server response to selecting folder
+    read_response(& mut reader, &mut response);
 
     *command_number += 1;
     *command_id = format!("A{}", *command_number);
