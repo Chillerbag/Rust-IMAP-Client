@@ -8,7 +8,6 @@ mod send_and_receive;
 // --------------- ALL TODOS -----------------
 
 // 2) prioritise if we are an ipv6. Dunno how
-// 3) when folder is undefined, read from "Inbox" folder -- string matching
 // 3) when login fails - return as per spec - string matching also 
 // 4) handle the Err case of Result<> in main, probably. ( I haven't a fucking clue how to do this)
 // 5) part of 4, but error with code 3 when certain things dont exist in login (read spec). READ ed response to this https://edstem.org/au/courses/15616/discussion/1944353
