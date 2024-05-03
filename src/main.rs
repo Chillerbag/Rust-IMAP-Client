@@ -7,9 +7,9 @@ mod send_and_receive;
 
 // --------------- ALL TODOS -----------------
 
-// 1) make a file for sending commands to IMAP server. This is a general purpose thing so we can avoid code reuse -- done!
 // 2) prioritise if we are an ipv6. Dunno how
-// 3) when folder is undefined, read from "Inbox" folder
+// 3) when folder is undefined, read from "Inbox" folder -- string matching
+// 3) when login fails - return as per spec - string matching also 
 // 4) handle the Err case of Result<> in main, probably. ( I haven't a fucking clue how to do this)
 // 5) part of 4, but error with code 3 when certain things dont exist in login (read spec). READ ed response to this https://edstem.org/au/courses/15616/discussion/1944353
 
@@ -63,16 +63,16 @@ fn main() {
     }
 
     // for testing
-    println!("Username: {}", username);
-    println!("Password: {}", password);
-    println!("Folder: {}", folder);
-    println!("Message Number: {}", message_num);
-    println!("Command: {}", command);
-    println!("Server Name: {}", server_name);
+    //println!("Username: {}", username);
+    //println!("Password: {}", password);
+    //println!("Folder: {}", folder);
+    //println!("Message Number: {}", message_num);
+    //println!("Command: {}", command);
+    //println!("Server Name: {}", server_name);
 
     // get the socket 
     let mut socket = make_socket(server_name);
-    println!("Connection successful!");
+    //println!("Connection successful!");
 
     // then login 
     login(&mut socket, &mut command_id, &username, &password, &folder, &mut command_number);
