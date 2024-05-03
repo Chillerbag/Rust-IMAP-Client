@@ -4,7 +4,8 @@ use std::io::Write;
 use std::process;
 use std::io::{BufRead, BufReader};
 
-
+// thank god for this: https://stackoverflow.com/questions/30552187/reading-from-a-tcpstream-with-readread-to-string-hangs-until-the-connection-is
+// have to use read_line not read_to_string
 
 pub fn send_command(stream: &mut TcpStream, command: String) {
 

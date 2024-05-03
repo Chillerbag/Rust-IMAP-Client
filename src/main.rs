@@ -62,20 +62,18 @@ fn main() {
         i += 1;
     }
 
-    // for testing
-    //println!("Username: {}", username);
-    //println!("Password: {}", password);
-    //println!("Folder: {}", folder);
-    //println!("Message Number: {}", message_num);
-    //println!("Command: {}", command);
-    //println!("Server Name: {}", server_name);
-
     // get the socket 
     let mut socket = make_socket(server_name);
-    //println!("Connection successful!");
 
     // then login 
-    login(&mut socket, &mut command_id, &username, &password, &folder, &mut command_number);
+
+    // check if the folder is empty, and if so, use inbox.
+    // dont know why i have to convert like this.
+    if folder.is_empty() {
+        folder = "INBOX".to_string(); 
+    }
+    
+    login(&mut socket, &mut command_id, &username, &password, &mut folder, &mut command_number);
 
 
     // then we send commands passed in the command line HERE and have some function to handle the output 
