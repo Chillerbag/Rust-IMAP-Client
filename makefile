@@ -9,4 +9,3 @@ vendor:
 	if [ ! -d "vendor/" ]; then \
 		cargo vendor --locked; \
 	fi
-.PHONY: vendor

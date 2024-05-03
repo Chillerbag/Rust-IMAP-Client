@@ -1,9 +1,11 @@
 use std::env;
 use crate::socket_maker::make_socket;
 use crate::login::login;
+use crate::command_executor::execute_command;
 mod socket_maker;
 mod login; 
 mod send_and_receive;
+mod command_executor;
 
 // --------------- ALL TODOS -----------------
 
@@ -77,7 +79,9 @@ fn main() {
 
     // then we send commands passed in the command line HERE and have some function to handle the output 
 
-    // this should be a general function that can handle different commands. 
+    execute_command(&mut command_id, &mut message_num, &mut command, &mut command_number);
+
+    
 
 
 
