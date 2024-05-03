@@ -77,6 +77,8 @@ fn main() {
 
     // then we send commands passed in the command line HERE and have some function to handle the output 
 
+    // this should be a general function that can handle different commands. 
+
 
 
     
