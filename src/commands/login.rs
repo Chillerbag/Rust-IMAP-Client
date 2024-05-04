@@ -1,13 +1,14 @@
 use std::net::TcpStream;
 use std::io::BufReader;
-use crate::send_and_receive::read_response;
-use crate::send_and_receive::send_command;
+use super::send_and_receive::read_response;
+use super::send_and_receive::send_command;
 use std::process;
 
 
 
 
-pub fn login(stream: &mut TcpStream, command_id: &mut String, username: &str, password: &str, folder: &mut String, command_number: &mut u32){
+
+pub fn login_command(stream: &mut TcpStream, command_id: &mut String, username: &str, password: &str, folder: &mut String, command_number: &mut u32){
 
     let mut reader = BufReader::new(stream.try_clone().expect("error cloning stream"));
     let mut response = String::new();

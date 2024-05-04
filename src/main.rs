@@ -1,18 +1,18 @@
+mod helpers;
+mod commands; 
+
 use std::env;
-use crate::socket_maker::make_socket;
-use crate::login::login;
-use crate::command_executor::execute_command;
-mod socket_maker;
-mod login; 
-mod send_and_receive;
-mod command_executor;
+
+use helpers::socket_maker::make_socket;
+use helpers::command_executor::execute_command;
+use commands::login::login_command;
+
+
 
 // --------------- ALL TODOS -----------------
 
-// 2) prioritise if we are an ipv6. Dunno how
-// 3) when login fails - return as per spec - string matching also 
-// 4) handle the Err case of Result<> in main, probably. ( I haven't a fucking clue how to do this)
-// 5) part of 4, but error with code 3 when certain things dont exist in login (read spec). READ ed response to this https://edstem.org/au/courses/15616/discussion/1944353
+// 2) prioritise if we are an ipv6. Dunno how, but we pass the test case for this
+// 4) handle the Err case of Result<> in main, probably. ( I haven't a clue how to do this)
 
 // -------------------------------------------
 
@@ -69,12 +69,11 @@ fn main() {
     // then login 
 
     // check if the folder is empty, and if so, use inbox.
-    // dont know why i have to convert like this.
     if folder.is_empty() {
         folder = "INBOX".to_string(); 
     }
     
-    login(&mut socket, &mut command_id, &username, &password, &mut folder, &mut command_number);
+    login_command(&mut socket, &mut command_id, &username, &password, &mut folder, &mut command_number);
 
 
     // then we send commands passed in the command line HERE and have some function to handle the output 
