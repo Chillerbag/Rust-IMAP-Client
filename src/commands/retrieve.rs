@@ -1,3 +1,3 @@
-pub fn retrieve_command(command_id: &mut String, message_num: &mut String, command: &mut String, command_number: &mut u32) {
+pub fn retrieve_command(message_num: &mut String, command: &str, command_number: &mut u32) {
 
 }

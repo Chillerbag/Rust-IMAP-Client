@@ -29,9 +29,7 @@ fn main() {
     let mut server_name: String = String::new();
 
     // for the tag for each command 
-    let mut command_id: String; 
     let mut command_number: u32 = 1;
-    command_id = format!("A{}", command_number);
 
     // iterate over args and assign them to their strings using .clone()
     let mut i = 1;
@@ -39,20 +37,16 @@ fn main() {
         // pattern matching
         match args[i].as_str() {
             "-u" => {
-                i += 1;
-                username = args[i].clone();
+                username = args[i+1].clone();
             }
             "-p" => {
-                i += 1;
-                password = args[i].clone();
+                password = args[i+1].clone();
             }
             "-f" => {
-                i += 1;
-                folder = args[i].clone();
+                folder = args[i+1].clone();
             }
             "-n" => {
-                i += 1;
-                message_num = args[i].clone();
+                message_num = args[i+1].clone();
             }
             _ => {
                 command = args[i].clone();
@@ -60,12 +54,12 @@ fn main() {
                 break;
             }
         }
-        i += 1;
+        i += 2;
     }
 
     // get the socket 
-    let mut socket = make_socket(server_name);
-
+    let mut socket = make_socket(server_name).unwrap();
+    
     // then login 
 
     // check if the folder is empty, and if so, use inbox.
@@ -73,16 +67,12 @@ fn main() {
         folder = "INBOX".to_string(); 
     }
     
-    login_command(&mut socket, &mut command_id, &username, &password, &mut folder, &mut command_number);
+    login_command(&mut socket, &username, &password, &mut folder, &mut command_number);
 
 
     // then we send commands passed in the command line HERE and have some function to handle the output 
 
-    execute_command(&mut command_id, &mut message_num, &mut command, &mut command_number);
-
-    
-
-
+    execute_command(&mut message_num, &command, &mut command_number);
 
     
 
