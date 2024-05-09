@@ -28,7 +28,7 @@ pub fn login_command(stream: &mut TcpStream, username: &str, password: &str, fol
     // check if login is invalid 
     let err_no_folder: String = format!("{} NO", command_id);
     if response.starts_with(&err_no_folder) {
-        println!("Login failure\n");
+        println!("Login failure");
         process::exit(3);
     }
     response.clear();
@@ -41,7 +41,7 @@ pub fn login_command(stream: &mut TcpStream, username: &str, password: &str, fol
 
 
     // write select folder command to server
-    let full_command = format!("{} SELECT {} \r\n", command_id_2, folder);
+    let full_command = format!("{} SELECT {}\r\n", command_id_2, sanitise_string_to_literal(folder));
     send_command(stream, full_command);
 
     // Read server response to selecting folder
@@ -50,7 +50,7 @@ pub fn login_command(stream: &mut TcpStream, username: &str, password: &str, fol
     // check if folder doesn't exist
     let err_no_folder: String = format!("{} NO", command_id_2);
     if response.starts_with(&err_no_folder) {
-        println!("Folder not found\n");
+        println!("Folder not found");
         process::exit(3);
         
     }
@@ -60,4 +60,9 @@ pub fn login_command(stream: &mut TcpStream, username: &str, password: &str, fol
 
     // ---------------------------------------------------------------------------
 
+}
+
+
+fn sanitise_string_to_literal(string :&str)-> String{
+    format!("{{{}}}\r\n{}",string.len(), string )
 }
