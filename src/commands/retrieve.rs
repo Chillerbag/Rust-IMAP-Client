@@ -2,6 +2,7 @@ use std::net::TcpStream;
 use std::io::BufReader;
 use std::process;
 use crate::commands::send_and_receive::*;
+use crate::helpers::exiting::*;
 
 pub fn retrieve_command(stream: &mut TcpStream, message_num: &mut String, command_number: &mut u32) {
     eprintln!("Retrieve command");
@@ -101,32 +102,4 @@ fn is_response_done(final_line : &str,command_id :&str, exit_if_not_done: bool) 
     }
     return true;
     
-}
-
-fn exit_command_line() -> ! {
-    println!("Commandline input failure");
-    process::exit(1)
-}
-fn exit_connection() -> ! {
-
-    println!("Connection failure");
-    process::exit(2)
-}
-fn exit_server_response() -> ! {
-
-    println!("Server response failure");
-    process::exit(3)
-}
-fn exit_parsing() -> ! {
-    println!("Parsing failure in server response");
-    process::exit(4)
-}
-fn exit_parsing_with(a :String) -> ! {
-    println!("Parsing failure in server response: {}",a);
-    process::exit(4)
-}
-fn exit_other(error :String) -> ! {
-
-    println!("{}",error);
-    process::exit(5)
 }

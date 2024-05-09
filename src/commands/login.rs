@@ -3,6 +3,7 @@ use std::io::BufReader;
 use super::send_and_receive::read_response;
 use super::send_and_receive::send_command;
 use std::process;
+use crate::helpers::sanitisation::sanitise_string_to_literal;
 
 
 
@@ -19,7 +20,7 @@ pub fn login_command(stream: &mut TcpStream, username: &str, password: &str, fol
 
     let command_id = format!("A{}", *command_number);
     // Write login command to server
-    let full_command = format!("{} LOGIN {} {} \r\n", command_id, &username, &password);
+    let full_command = format!("{} LOGIN {} {} \r\n", command_id, sanitise_string_to_literal(&username), sanitise_string_to_literal(&password));
     send_command(stream, full_command);
 
     // Read server response until end of line
@@ -48,7 +49,7 @@ pub fn login_command(stream: &mut TcpStream, username: &str, password: &str, fol
     read_response(& mut reader, &mut response, command_id_2.clone());
 
     // check if folder doesn't exist
-    let err_no_folder: String = format!("{} NO", command_id_2);
+    let err_no_folder: String = format!("A{} NO", command_id_2);
     if response.starts_with(&err_no_folder) {
         println!("Folder not found");
         process::exit(3);
@@ -60,9 +61,4 @@ pub fn login_command(stream: &mut TcpStream, username: &str, password: &str, fol
 
     // ---------------------------------------------------------------------------
 
-}
-
-
-fn sanitise_string_to_literal(string :&str)-> String{
-    format!("{{{}}}\r\n{}",string.len(), string )
 }
