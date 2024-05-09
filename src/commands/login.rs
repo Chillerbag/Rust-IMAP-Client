@@ -14,7 +14,7 @@ pub fn login_command(stream: &mut TcpStream, username: &str, password: &str, fol
     // -------------------------------- logging in --------------------------------
 
     // read the initial response to the connection
-    read_response(& mut reader, &mut response);
+    read_response(& mut reader, &mut response, "*".to_string());
     response.clear();
 
     let command_id = format!("A{}", *command_number);
@@ -23,14 +23,13 @@ pub fn login_command(stream: &mut TcpStream, username: &str, password: &str, fol
     send_command(stream, full_command);
 
     // Read server response until end of line
-    read_response(& mut reader, &mut response);
+    read_response(& mut reader, &mut response, command_id.clone());
 
     // check if login is invalid 
     let err_no_folder: String = format!("{} NO", command_id);
     if response.starts_with(&err_no_folder) {
         println!("Login failure\n");
         process::exit(3);
-        
     }
     response.clear();
 
@@ -46,7 +45,7 @@ pub fn login_command(stream: &mut TcpStream, username: &str, password: &str, fol
     send_command(stream, full_command);
 
     // Read server response to selecting folder
-    read_response(& mut reader, &mut response);
+    read_response(& mut reader, &mut response, command_id_2.clone());
 
     // check if folder doesn't exist
     let err_no_folder: String = format!("{} NO", command_id_2);

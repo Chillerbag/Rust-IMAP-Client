@@ -6,6 +6,8 @@ use std::env;
 use helpers::socket_maker::make_socket;
 use helpers::command_executor::execute_command;
 use commands::login::login_command;
+use std::process;
+use std::io::Result;
 
 
 
@@ -16,7 +18,7 @@ use commands::login::login_command;
 
 // -------------------------------------------
 
-fn main() {
+fn main() -> Result<()> {
     // get command-line arguments
     let args: Vec<String> = env::args().collect();
 
@@ -58,7 +60,10 @@ fn main() {
     }
 
     // get the socket 
-    let mut socket = make_socket(server_name).unwrap();
+    let mut socket = make_socket(server_name).unwrap_or_else( |e| {
+        println!("Failed to connect to server: {}", e);
+        process::exit(1)
+    });
     
     // then login 
 
@@ -70,13 +75,10 @@ fn main() {
     login_command(&mut socket, &username, &password, &mut folder, &mut command_number);
 
 
-    // then we send commands passed in the command line HERE and have some function to handle the output 
+    // then we send commands passed in the command line HERE and have some function to handle the output
+    execute_command(&mut socket, &mut message_num, &command, &mut command_number);
 
-    execute_command(&mut message_num, &command, &mut command_number);
-
-    
-
-
+    Ok(())
 }
 
  
