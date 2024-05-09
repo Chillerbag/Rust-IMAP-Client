@@ -3,6 +3,7 @@ use std::io::BufReader;
 use super::send_and_receive::read_response;
 use super::send_and_receive::send_command;
 use std::process;
+use crate::helpers::exiting::exit_parsing;
 use crate::helpers::sanitisation::sanitise_string_to_literal;
 
 
@@ -25,10 +26,10 @@ pub fn login_command(stream: &mut TcpStream, username: &str, password: &str, fol
 
     // Read server response until end of line
     read_response(& mut reader, &mut response, command_id.clone());
-
+    let Some(response_done) = response.rsplit("\r\n").skip(1).next() else {exit_parsing()};
     // check if login is invalid 
     let err_no_folder: String = format!("{} NO", command_id);
-    if response.starts_with(&err_no_folder) {
+    if response_done.starts_with(&err_no_folder) {
         println!("Login failure");
         process::exit(3);
     }
@@ -49,8 +50,9 @@ pub fn login_command(stream: &mut TcpStream, username: &str, password: &str, fol
     read_response(& mut reader, &mut response, command_id_2.clone());
 
     // check if folder doesn't exist
-    let err_no_folder: String = format!("A{} NO", command_id_2);
-    if response.starts_with(&err_no_folder) {
+    let Some(response_done) = response.rsplit("\r\n").skip(1).next() else {exit_parsing()};
+    let err_no_folder: String = format!("{} NO", command_id_2);
+    if response_done.starts_with(&err_no_folder) {
         println!("Folder not found");
         process::exit(3);
         
