@@ -1,8 +1,4 @@
 EXE=fetchmail
-# TODO:MAKE CLEAN
-
-clean :
-	-rm fetchmail
 
 $(EXE): src/*.rs vendor
 	cargo build --frozen --offline --release
@@ -12,3 +8,6 @@ vendor:
 	if [ ! -d "vendor/" ]; then \
 		cargo vendor --locked; \
 	fi
+
+clean :
+	$(RM) fetchmail
