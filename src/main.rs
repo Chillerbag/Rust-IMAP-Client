@@ -6,6 +6,7 @@ use std::env;
 use helpers::socket_maker::make_socket;
 use helpers::command_executor::execute_command;
 use commands::login::login_command;
+use helpers::exiting::exit_command_line;
 use std::process;
 use std::io::Result;
 
@@ -30,6 +31,8 @@ fn main() -> Result<()> {
     let mut command: String = String::new();
     let mut server_name: String = String::new();
 
+    let mut arg_check: u32 = 0; 
+
     // for the tag for each command 
     let mut command_number: u32 = 1;
 
@@ -40,9 +43,12 @@ fn main() -> Result<()> {
         match args[i].as_str() {
             "-u" => {
                 username = args[i+1].clone();
+                arg_check += 1; 
+                
             }
             "-p" => {
                 password = args[i+1].clone();
+                arg_check += 1;
             }
             "-f" => {
                 folder = args[i+1].clone();
@@ -53,10 +59,16 @@ fn main() -> Result<()> {
             _ => {
                 command = args[i].clone();
                 server_name = args[i + 1].clone();
+                arg_check += 2;
                 break;
             }
         }
         i += 2;
+    }
+
+    // check if enough args were provided
+    if arg_check != 4 {
+        exit_command_line();
     }
 
     // get the socket 
