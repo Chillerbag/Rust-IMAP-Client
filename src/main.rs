@@ -7,6 +7,7 @@ use helpers::socket_maker::make_socket;
 use helpers::command_executor::execute_command;
 use commands::login::login_command;
 use helpers::exiting::exit_command_line;
+use helpers::send_and_receive::send_command;
 use std::process;
 use std::io::Result;
 
@@ -55,6 +56,9 @@ fn main() -> Result<()> {
             }
             "-f" => {
                 folder = args[i+1].clone();
+                if folder == "" {
+                    exit_command_line();
+                }
             }
             "-n" => {
                 message_num = args[i+1].clone();
@@ -85,7 +89,7 @@ fn main() -> Result<()> {
     
     // then login 
 
-    // check if the folder is empty, and if so, use inbox.
+    // check if the folder var is empty, and if so, use inbox.
     if folder.is_empty() {
         folder = "INBOX".to_string(); 
     }
@@ -96,8 +100,12 @@ fn main() -> Result<()> {
     // then we send commands passed in the command line HERE and have some function to handle the output
     execute_command(&mut socket, &mut message_num, &command, &mut command_number);
 
-
+    command = "LOGOUT".to_string();
     // disconnect from IMAP server
+    send_command(&mut socket, command);
+
+
+
 
     Ok(())
 }

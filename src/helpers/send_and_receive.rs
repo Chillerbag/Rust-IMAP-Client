@@ -26,7 +26,9 @@ pub fn send_command(stream: &mut TcpStream, command: String) {
 pub fn read_response(reader: &mut BufReader<TcpStream>, buffer: &mut String, command_id: String) {
     let mut tag = "";
     let mut line_buffer = String::new();
+    println!("{}", line_buffer);
     while (command_id != tag) {
+        println!("{}", line_buffer);
         line_buffer.clear();
         match reader.read_line(&mut line_buffer) {
             // probably can do if let Err(err) to avoid checking nothing with Ok(_) which is ugly
