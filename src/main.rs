@@ -39,7 +39,7 @@ fn main() -> Result<()> {
     // iterate over args and assign them to their strings using .clone()
     let mut i = 1;
     while i < args.len() {
-        if args.len() < 6 || i  {
+        if args.len() < 6 {
             exit_command_line();
         }
         // pattern matching
