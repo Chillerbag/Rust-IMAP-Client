@@ -1,9 +1,13 @@
 
+use super::exiting;
 use std::net::TcpStream;
 use std::io::{Result,Write};
 use std::process;
+use exiting::exit_server_response;
 use std::io::{BufRead, BufReader};
 use std::str;
+
+
 
 
 // thank god for this: https://stackoverflow.com/questions/30552187/reading-from-a-tcpstream-with-readread-to-string-hangs-until-the-connection-is
@@ -32,7 +36,11 @@ pub fn read_response(reader: &mut BufReader<TcpStream>, buffer: &mut String, com
         line_buffer.clear();
         match reader.read_line(&mut line_buffer) {
             // probably can do if let Err(err) to avoid checking nothing with Ok(_) which is ugly
-            Ok(_) => (),
+            Ok(_) => { if line_buffer.is_empty() 
+                {
+                    exit_server_response();
+                }
+            }
             Err(err) => {
                 eprintln!("Error reading from stream (this should never happen): {}", err);
                 process::exit(5);
