@@ -9,6 +9,7 @@ use helpers::command_executor::execute_command;
 use commands::login::login_command;
 use helpers::exiting::exit_command_line;
 use helpers::send_and_receive::send_command;
+use helpers::send_and_receive::read_response;
 use std::process;
 use std::io::Result;
 
@@ -107,6 +108,9 @@ fn main() -> Result<()> {
     let mut response = String::new();
     // disconnect from IMAP server
     send_command(&mut socket, command);
+    read_response(&mut reader, &mut response, command_id);
     socket.shutdown(Shutdown::Both);
     Ok(())
 }
+
+
