@@ -39,7 +39,7 @@ fn main() -> Result<()> {
     // iterate over args and assign them to their strings using .clone()
     let mut i = 1;
     while i < args.len() {
-        if args.len() < 6 {
+        if args.len() < 6 || i  {
             exit_command_line();
         }
         // pattern matching
@@ -60,6 +60,9 @@ fn main() -> Result<()> {
                 message_num = args[i+1].clone();
             }
             _ => {
+                if args.len() < i + 2 {
+                    exit_command_line(); // handle OOB
+                }
                 command = args[i].clone();
                 server_name = args[i + 1].clone();
                 arg_check += 2;
@@ -92,6 +95,9 @@ fn main() -> Result<()> {
 
     // then we send commands passed in the command line HERE and have some function to handle the output
     execute_command(&mut socket, &mut message_num, &command, &mut command_number);
+
+
+    // disconnect from IMAP server
 
     Ok(())
 }
