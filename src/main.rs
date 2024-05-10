@@ -2,6 +2,7 @@ mod helpers;
 mod commands; 
 
 use std::env;
+use std::net::{TcpStream, Shutdown};
 
 use helpers::socket_maker::make_socket;
 use helpers::command_executor::execute_command;
@@ -103,10 +104,9 @@ fn main() -> Result<()> {
     command = "LOGOUT".to_string();
     // disconnect from IMAP server
     send_command(&mut socket, command);
+    socket.shutdown(Shutdown::Both);
 
-
-
-
+    process::exit(0);
     Ok(())
 }
 
