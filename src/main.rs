@@ -1,6 +1,6 @@
 mod helpers;
 mod commands; 
-
+use std::io::{BufRead, BufReader};
 use std::env;
 use std::net::{TcpStream, Shutdown};
 
@@ -11,6 +11,7 @@ use helpers::exiting::exit_command_line;
 use helpers::send_and_receive::send_command;
 use std::process;
 use std::io::Result;
+
 
 
 
@@ -100,14 +101,12 @@ fn main() -> Result<()> {
 
     // then we send commands passed in the command line HERE and have some function to handle the output
     execute_command(&mut socket, &mut message_num, &command, &mut command_number);
-
-    command = "LOGOUT\r\n".to_string();
+    let command_id = format!("A{}", command_number);
+    command = format!("{} LOGOUT \r\n", command_id);
+    let mut reader = BufReader::new(socket.try_clone().expect("error cloning stream"));
+    let mut response = String::new();
     // disconnect from IMAP server
     send_command(&mut socket, command);
-
     socket.shutdown(Shutdown::Both);
-
     Ok(())
 }
-
- 

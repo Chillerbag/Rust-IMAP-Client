@@ -42,6 +42,10 @@ pub fn read_response(reader: &mut BufReader<TcpStream>, buffer: &mut String, com
     
         (tag,_) = line_buffer.split_once(" ").unwrap_or(("",line_buffer.as_str()));
         buffer.push_str(&line_buffer);
+        if line_buffer.starts_with("* BYE") {
+            break;
+        }
+        
     }
 
 }
