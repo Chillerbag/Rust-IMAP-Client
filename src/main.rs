@@ -100,9 +100,9 @@ fn main() -> Result<()> {
     // then we send commands passed in the command line HERE and have some function to handle the output
     execute_command(&mut socket, &mut message_num, &command, &mut command_number);
 
-    command = "LOGOUT".to_string();
+    //command = "LOGOUT".to_string();
     // disconnect from IMAP server
-    send_command(&mut socket, command);
+    //send_command(&mut socket, command);
 
 
 
