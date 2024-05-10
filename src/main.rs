@@ -56,9 +56,9 @@ fn main() -> Result<()> {
             }
             "-f" => {
                 folder = args[i+1].clone();
-                if folder == "" {
-                    exit_command_line();
-                }
+                //if folder == "" {
+                //    exit_command_line();
+                //}
             }
             "-n" => {
                 message_num = args[i+1].clone();
