@@ -33,7 +33,7 @@ pub fn read_response(reader: &mut BufReader<TcpStream>, buffer: &mut String, com
             Ok(_) => (),
             Err(err) => {
                 eprintln!("Error reading from stream (this should never happen): {}", err);
-                process::exit(1);
+                process::exit(3);
             }
         }
         
