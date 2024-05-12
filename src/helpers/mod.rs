@@ -4,3 +4,4 @@ pub mod socket_maker;
 pub mod exiting;
 pub mod sanitisation;
 pub mod lexicon;
+pub mod parsing;

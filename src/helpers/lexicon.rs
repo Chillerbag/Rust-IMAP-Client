@@ -1,11 +1,11 @@
 use std::vec::Vec;
 use std::option::Option;
 
-type AString = String;
+pub(crate) type AString = String;
 
-type Atom = String;
+pub(crate) type Atom = String;
 
-type Base64 = String;
+pub(crate) struct Base64{ base64:String}
 
 // enum Body {
 //     BodyType1part(BodyType1part),
@@ -13,12 +13,12 @@ type Base64 = String;
 //     BodyTypeMpart(BodyTypeMpart),
 // }
 
-enum ContinueReq {
+pub(crate) enum ContinueReq {
     RespText(RespText),
     Base64(Base64),
 }
 
-enum Flag {
+pub(crate) enum Flag {
     Answered,
     Flagged,
     Deleted,
@@ -28,35 +28,35 @@ enum Flag {
     Atom(Atom),
 }
 
-enum FlagFetch {
+pub(crate) enum FlagFetch {
     Recent,
     Flag(Flag)
 } 
 
-type HeaderFldName = AString;
+pub(crate) type HeaderFldName = AString;
 
-type HeaderList =  Vec<HeaderFldName>;
+pub(crate) type HeaderList =  Vec<HeaderFldName>;
 
-struct MessageData {
-    nz_number: NzNumber,
-    message_data_component : MessageDataComponent
+pub(crate) struct MessageData {
+    pub(crate) nz_number: NzNumber,
+    pub(crate) message_data_component : MessageDataComponent
 }
 
-enum MessageDataComponent {
-    EXPUNGE,
-    FETCH(MsgAtt),
+pub(crate) enum MessageDataComponent {
+    Expunge,
+    Fetch(MsgAtt),
 }
 
-type MsgAtt = Vec<MsgAttComponent>;
+pub(crate) type MsgAtt = Vec<MsgAttComponent>;
 
-enum MsgAttComponent {
+pub(crate) enum MsgAttComponent {
     MsgAttDynamic(MsgAttDynamic),
     MsgAttStatic(MsgAttStatic),
 }
 
-type MsgAttDynamic = Vec<FlagFetch>;
+pub(crate) type MsgAttDynamic = Vec<FlagFetch>;
 
-enum MsgAttStatic {
+pub(crate) enum MsgAttStatic {
     // Envolope(Envolope),
     // Internaldate(DateTime),
     RFC822(MsgAttStaticRFC822Component),
@@ -65,71 +65,74 @@ enum MsgAttStatic {
     // UID(UID),
 }
 
-enum MsgAttStaticBodyComponent {
+pub(crate) enum MsgAttStaticBodyComponent {
     // Structured((bool,Body)),
     NonStructured((Section,Number,NString)),
 }
 
-enum MsgAttStaticRFC822Component {
+pub(crate) enum MsgAttStaticRFC822Component {
     Header,
     Text,
 }
 
-type NString = Option<String>; 
+pub(crate) type NString = Option<String>; 
 
-type Number = i64;
+pub(crate) type Number = i64;
 
-type NzNumber = i64;
+pub(crate) type NzNumber = i64;
 
 
-enum RespCondBye {
-    BYE,
-    RespText(RespText)
+pub(crate) struct RespCondBye {
+    pub(crate) resp_text:RespText
 }
 
-enum RespCondState {
-    OK(RespText),
+pub(crate) enum RespCondState {
+    Ok(RespText),
     No(RespText),
     Bad(RespText),
 }
 
-struct Response {
-    response_components :Vec<ResponseComponent>,
-    response_done: ResponseDone,
+pub(crate) struct Response {
+    pub(crate) response_components :Vec<ResponseComponent>,
+    pub(crate) response_done: ResponseDone,
 }
 
-enum ResponseComponent {
+pub(crate) enum ResponseComponent {
     ContinueReq(ContinueReq),
     ResponseData(ResponseData),
 }
 
-enum ResponseData {
-    RespCondState(RespCondState),
+pub(crate) enum ResponseData {
     RespCondBye(RespCondBye),
+    RespCondState(RespCondState),
     // MailboxData(MailboxData),
     MessageData(MessageData),
     // CapabilityData(CapabilityData),
 }
 
-enum ResponseDone {
+pub(crate) enum ResponseDone {
     ResponseTagged(ResponseTagged),
     ResponseFatal(ResponseFatal),
 }
 
-type ResponseFatal = RespCondBye;
-
-struct ResponseTagged {
-    tag : Tag,
-    resp_cond_state :RespCondState,
-}
-type Tag = String;
-
-struct RespText {
-    resp_text_code : Option<RespTextCode>,
-    text : Text,
+pub(crate) struct ResponseFatal {
+    pub(crate) resp_cond_bye:RespCondBye
 }
 
-enum RespTextCode {
+pub(crate) struct ResponseTagged {
+    pub(crate) tag : Tag,
+    pub(crate) resp_cond_state :RespCondState,
+}
+pub(crate) struct Tag {
+    pub(crate) chars:String
+}
+
+pub(crate) struct RespText {
+    pub(crate) resp_text_code : Option<RespTextCode>,
+    pub(crate) text : Text,
+}
+
+pub(crate) enum RespTextCode {
     //WARN:Many fields missing here
     Alert,
     // BADCHARSET(()),
@@ -137,23 +140,24 @@ enum RespTextCode {
     ReadOnly,
     ReadWrite,
     TryCreate,
-
 }
 
-type Section = SectionSpec;
+pub(crate) type Section = SectionSpec;
 
-enum SectionMsgtext {
+pub(crate) enum SectionMsgtext {
     Header,
     HeaderFields((bool,HeaderList)),
     Text
 }
 
-type SectionPart = Vec<NzNumber>;
+pub(crate) type SectionPart = Vec<NzNumber>;
 
-enum SectionSpec {
+pub(crate) enum SectionSpec {
     SectionMsgtext(SectionMsgtext),
     SectionPart(SectionPart),
 }
 
-type Text = String;
+pub(crate) struct Text {
+    pub(crate) text:String
+}
 
