@@ -99,7 +99,7 @@ impl DecodeIMAP for MsgAtt {
         let remaining_string : &mut String = &mut remove_start("(",s)?;
         let mut response_components : Vec<MsgAttComponent> = Vec::new();
 
-        while remaining_string.starts_with(")") {
+        while !remaining_string.starts_with(")") {
             match remaining_string.to_string() {
                 s if  MsgAttStatic::can_match(s.to_string()) => {
                     let (rs,next_part) =  MsgAttStatic::parse_new(s.to_string())?;
@@ -131,8 +131,116 @@ impl DecodeIMAP for MsgAttDynamic {
         todo!()
     }
 }
-
 impl DecodeIMAP for MsgAttStatic {
+    fn can_match(s:String) -> bool {
+        s.starts_with("ENVELOPE") || s.starts_with("RFC822") || 
+        s.starts_with("BODY")|| s.starts_with("RFC822.SIZE")|| 
+        s.starts_with("UID")
+    }
+
+    fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
+        match s {
+            s if s.starts_with("RFC822") => {
+                let rest = remove_start("RFC822 ", s)?;
+                let (rest,part) = MsgAttStaticRFC822Component::parse_new(rest)?;
+                Ok((rest,MsgAttStatic::RFC822(part)))
+            }
+            
+            s if s.starts_with("RFC822.SIZE ") => {
+                let rest = remove_start("RFC822.SIZE  ", s)?;
+                let (rest,part) = u32::parse_new(rest)?;
+                Ok((rest,MsgAttStatic::RFC822Size(part)))
+            }
+            
+            s if MsgAttStaticBodyStructuredComponent::can_match(s.to_string()) => {
+                let (rest,part) = MsgAttStaticBodyStructuredComponent::parse_new(s)?;
+                Ok((rest,MsgAttStatic::StructuredBody(part)))
+            }
+
+            s if MsgAttStaticBodyNonStructuredComponent::can_match(s.to_string()) => {
+                let (rest,part) = MsgAttStaticBodyNonStructuredComponent::parse_new(s)?;
+                Ok((rest,MsgAttStatic::NonStructuredBody(part)))
+            }
+            _ => {todo!();Err("RespCondState didn't match".to_string())}
+            
+        }
+    }
+}
+
+impl DecodeIMAP for MsgAttStaticBodyStructuredComponent {
+    fn can_match(s:String) -> bool {
+        s.starts_with("BODY ") || s.starts_with("BODYSTRUCTURE ")
+    }
+
+    fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
+        todo!();
+        let mut structure = false;
+        // match s {
+        //     s if s.starts_with("BODY ") => {
+        //         let rest = remove_start("RFC822 ", s)?;
+        //         let (rest,part) = MsgAttStaticRFC822Component::parse_new(rest)?;
+        //         // Ok((rest,MsgAttStatic::RFC822(part)))
+        //     }
+            
+        //     s if s.starts_with("BODYSTRUCTURE ") => {
+        //         let rest = remove_start("RFC822.SIZE  ", s)?;
+        //         let (rest,part) = i64::parse_new(rest)?;
+        //         // Ok((rest,MsgAttStatic::RFC822Size(part)))
+        //     }
+        //     _ => {Err("MsgAttStaticBodyComponent didn't match".to_string())}
+            
+        // };
+    }
+}
+
+impl DecodeIMAP for MsgAttStaticBodyNonStructuredComponent {
+    fn can_match(s:String) -> bool {
+        s.starts_with("BODY")
+    }
+
+    fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
+        let mut rest = remove_start("BODY", s)?;
+        let (rs,section) = Section::parse_new(rest)?;
+        rest = rs;
+        let mut number = None;
+        if rest.starts_with("<") {
+            rest = remove_start("<", rest)?;
+            let (rs,part) = Number::parse_new(rest)?;
+            rest = remove_start(">", rs)?;
+            number = Some(part);
+        }
+        let rest = remove_start(" ", rest)?;
+        let (rest,nstring) = NString::parse_new(rest)?;
+        Ok((rest,MsgAttStaticBodyNonStructuredComponent {section,number,nstring}))
+    }
+}
+
+impl DecodeIMAP for NString {
+    fn can_match(s:String) -> bool {
+        true || s.starts_with("NIL")
+    }
+
+    fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
+        match s {
+            s if s.starts_with("NIL") => {
+                let rest = remove_start("NIL", s)?;
+                Ok((rest,None))
+            }
+            s if (s.starts_with("{")) => {
+                let rest = remove_start("{", s)?;
+                let (rest,number) = Number::parse_new(rest)?;
+                let rest = remove_start("}\r\n", rest)?;
+                let (string,rest) = rest.split_at(number.try_into().unwrap());
+                Ok((rest.to_string(),Some(string.to_string())))
+            }
+            _ => {
+                Err("asd".to_string())
+            }
+        }
+    }
+}
+
+impl DecodeIMAP for MsgAttStaticRFC822Component {
     fn can_match(s:String) -> bool {
         todo!()
     }
@@ -148,9 +256,9 @@ impl DecodeIMAP for NzNumber {
     }
 
     fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
-        let mut split = s.split(" ");
-        let number = split.next().unwrap_or("a").parse::<i64>().unwrap();
-        Ok((split.next().unwrap_or("").to_string(),number))
+        let (fs,ss) = s.split_at(s.chars().position(|c| !c.is_digit(10)).unwrap_or(s.len()));
+        let number = fs.parse::<u32>().unwrap();
+        Ok((ss.to_string(),number))
     }
 }
 
@@ -231,23 +339,22 @@ impl DecodeIMAP for ResponseData {
     }
 
     fn parse_new(s:String) -> Result<(String,ResponseData),String> {
-        let remaining_string : &mut String = &mut s.clone();
-        *remaining_string = remove_start("* ",remaining_string.to_string())?;
+        let mut remaining_string = remove_start("* ",s)?;
         let mut rd = Err("No response data component");
         match remaining_string.to_string() {
             s if RespCondBye::can_match(s.to_string()) => {
                 let (rs,next_part) =  RespCondBye::parse_new(s.to_string())?;
-                *remaining_string = rs;
+                remaining_string = rs;
                 rd = Ok(ResponseData::RespCondBye(next_part));
             }
             s if RespCondState::can_match(s.to_string()) => {
                 let (rs,next_part) =  RespCondState::parse_new(s.to_string())?;
-                *remaining_string = rs;
+                remaining_string = rs;
                 rd = Ok(ResponseData::RespCondState(next_part));
             }
             s if MessageData::can_match(s.to_string()) => {
                 let (rs,next_part) =  MessageData::parse_new(s.to_string())?;
-                *remaining_string = rs;
+                remaining_string = rs;
                 rd = Ok(ResponseData::MessageData(next_part));
             }
             _ => {return Err("ResponseData parsing failure".to_string());}
@@ -279,7 +386,7 @@ impl DecodeIMAP for ResponseDone {
 
 impl DecodeIMAP for ResponseFatal {
     fn can_match(s:String) -> bool {
-        s.starts_with("* ") || s.contains("\r\n")
+        s.starts_with("* ") && s.contains("\r\n")
     }
 
     fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
@@ -337,13 +444,44 @@ impl DecodeIMAP for RespTextCode {
     }
 }
 
+impl DecodeIMAP for Section {
+    fn can_match(s:String) -> bool {
+        s.starts_with("[")
+    }
+
+    fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
+        let rest = remove_start("[", s)?;
+        if SectionSpec::can_match(rest.to_string()) {
+            let (rest, part) = SectionSpec::parse_new(rest)?;
+            let rest = remove_start("]", rest)?;
+            Ok((rest,Some(part)))
+        } else {
+            let rest = remove_start("]", rest)?;
+            Ok((rest,None))
+        }
+    }
+}
+
+impl DecodeIMAP for SectionSpec {
+    fn can_match(s:String) -> bool {
+        !s.starts_with("]")
+    }
+
+    fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
+        todo!()
+    }
+} 
+
 impl DecodeIMAP for Tag {
     fn can_match(s:String) -> bool {
         true
     }
 
     fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
-        todo!()
+        let invalid_chars = "(){\r%*\"\\";
+        let (chars,ss) = s.split_at(s.chars().position(|c| invalid_chars.contains(c)).unwrap_or(s.len()));
+
+        Ok((ss.to_string(),Tag {chars:chars.to_string()}))
     }
 }
 

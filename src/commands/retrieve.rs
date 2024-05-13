@@ -3,6 +3,7 @@ use std::io::BufReader;
 use std::process;
 use crate::commands::send_and_receive::*;
 use crate::helpers::exiting::*;
+use crate::helpers::lexicon::*;
 
 pub fn retrieve_command(stream: &mut TcpStream, message_num: &mut String, command_number: &mut u32) {
     eprintln!("Retrieve command");
@@ -14,11 +15,24 @@ pub fn retrieve_command(stream: &mut TcpStream, message_num: &mut String, comman
     // Read server response
     let mut response = String::new();
     let mut reader = BufReader::new(stream.try_clone().expect("error cloning stream"));
-    read_response(&mut reader, &mut response, command_id.clone());
+    // read_response(&mut reader, &mut response, command_id.clone());
+    let resp  = read_response_object(&mut reader, &mut response, command_id.clone());
+    // eprintln!("{:?}",resp);
+    let Ok(Response { response_components, response_done: ResponseDone::ResponseTagged( 
+        ResponseTagged { resp_cond_state : RespCondState::Ok(_),tag: Tag {chars:read_command_id}}
+    )}) = resp else {exit_parsing_with("b".to_string())};
+    if command_id != read_command_id {
+        exit_other("Incorrect command id".to_string())
+    }
+    if response_components.len() <=0 {
+        exit_other("No email body found".to_string())
+    }
+    let Some(ResponseComponent::ResponseData(ResponseData::MessageData(MessageData {message_data_component: MessageDataComponent::Fetch(msg_att_components) ,..}))) = response_components.get(0) else {exit_parsing_with("prea".to_string());};
+    let Some(MsgAttComponent::MsgAttStatic(MsgAttStatic::NonStructuredBody(MsgAttStaticBodyNonStructuredComponent {nstring:Some(body),..}))) = msg_att_components.get(0) else {exit_parsing_with("a".to_string());};
     *command_number += 1;
 
     // get the body 
-    let body = read_next_response_data(& response,&command_id);
+    // let body = read_next_response_data(& response,&command_id);
     print!("{}",body);
 
 }
