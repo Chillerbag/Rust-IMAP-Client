@@ -2,6 +2,7 @@ use std::net::TcpStream;
 use std::io::BufReader;
 use std::process;
 use crate::commands::send_and_receive::*;
+use crate::helpers::lexicon::rfc3501::*;
 use crate::helpers::{exiting::*, lexicon::*};
 
 

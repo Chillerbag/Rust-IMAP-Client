@@ -132,7 +132,7 @@ pub(crate) enum MsgAttStaticRFC822Component {
 
 pub(crate) type NString = Option<String>; 
 
-//TODO:Differentiate these Numbers into structs that hold only u32, need different impl DecodeIMAP
+//TODO:Differentiate these Numbers into structs that hold only u32, need different impl DecodeProtocol
 pub(crate) type Number = u32;
 
 pub(crate) type NzNumber = u32;

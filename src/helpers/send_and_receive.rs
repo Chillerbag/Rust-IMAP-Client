@@ -1,13 +1,12 @@
 
-use super::exiting;
+use crate::helpers::parsing::rfc3501::parse_response;
+
+use super::{exiting, lexicon::rfc3501::Response};
 use std::net::TcpStream;
 use std::io::Write;
 use std::process;
 use exiting::exit_server_response;
 use std::io::{BufRead, BufReader};
-use crate::helpers::parsing::parse_response;
-
-use super::lexicon::Response;
 
 
 
@@ -86,6 +85,7 @@ pub fn read_response_object(reader: &mut BufReader<TcpStream>, buffer: &mut Stri
         }
         
     }
+    eprintln!("{}",buffer.to_string());
     parse_response(buffer.to_string())
 
 }

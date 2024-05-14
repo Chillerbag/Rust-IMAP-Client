@@ -1,4 +1,6 @@
-use super::lexicon::*;
+use crate::helpers::lexicon::rfc3501::*;
+use super::general::*;
+
 
 
 pub(crate) fn parse_response(s:String) -> Result<Response,String> {
@@ -7,20 +9,8 @@ pub(crate) fn parse_response(s:String) -> Result<Response,String> {
     Ok(resp)
 }
 
-pub(crate) fn remove_start(start:&str,string:String) -> Result<String,String> {
-    if !string.starts_with(start) {return Err(format!("String didn't start with \"{}\" full string is: {}", start,string));}
-    let (_,rest) = string.split_at(start.len());
-    Ok(rest.to_string())
-}
-
-pub(crate) trait DecodeIMAP {
-    fn can_match(s:String) -> bool;
-    
-    fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized;
-}
-
-impl DecodeIMAP for Base64 {
-    fn can_match(s:String) -> bool {
+impl DecodeProtocol for Base64 {
+    fn can_parse(s:String) -> bool {
         todo!()
     }
 
@@ -29,20 +19,20 @@ impl DecodeIMAP for Base64 {
     }
 }
 
-impl DecodeIMAP for ContinueReq {
-    fn can_match(s:String) -> bool {
+impl DecodeProtocol for ContinueReq {
+    fn can_parse(s:String) -> bool {
         s.starts_with("+ ") && s.contains("\r\n")
     }
 
     fn parse_new(s:String) -> Result<(String,ContinueReq),String> {
         let mut rest = remove_start("+ ", s)?;
         let part = match rest.to_string() {
-            s if RespText::can_match(s.to_string()) => {
+            s if RespText::can_parse(s.to_string()) => {
                 let (rs,part) = RespText::parse_new(s)?;
                 rest = rs;
                 ContinueReq::RespText(part)
             }
-            s if Base64::can_match(s.to_string()) => {
+            s if Base64::can_parse(s.to_string()) => {
                 let (rs,part) = Base64::parse_new(s)?;
                 rest = rs;
                 ContinueReq::Base64(part)
@@ -54,8 +44,8 @@ impl DecodeIMAP for ContinueReq {
     }
 }
 
-impl DecodeIMAP for env_NAddress {
-    fn can_match(s:String) -> bool {
+impl DecodeProtocol for env_NAddress {
+    fn can_parse(s:String) -> bool {
         s.starts_with("(") ||  s.starts_with("NIL")
     }
     fn parse_new(s:String) -> Result<(String, Self), String> where Self: Sized {
@@ -102,8 +92,8 @@ impl DecodeIMAP for env_NAddress {
 }
 
 
-impl DecodeIMAP for Envelope {
-    fn can_match(s:String) -> bool {
+impl DecodeProtocol for Envelope {
+    fn can_parse(s:String) -> bool {
         s.starts_with("(") && s.contains("\r\n")
     }
     fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
@@ -134,8 +124,8 @@ impl DecodeIMAP for Envelope {
     
 }
 
-impl DecodeIMAP for Address {
-    fn can_match(s:String) -> bool {
+impl DecodeProtocol for Address {
+    fn can_parse(s:String) -> bool {
         s.starts_with("(")
     }
     fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
@@ -159,10 +149,10 @@ impl DecodeIMAP for Address {
     }
     
 }
-impl DecodeIMAP for MessageData {
-    fn can_match(s:String) -> bool {
+impl DecodeProtocol for MessageData {
+    fn can_parse(s:String) -> bool {
         let Some((fs,ss)) = s.split_once(" ") else {return false;};
-        NzNumber::can_match(fs.to_string()) && MessageDataComponent::can_match(ss.to_string())
+        NzNumber::can_parse(fs.to_string()) && MessageDataComponent::can_parse(ss.to_string())
     }
 
     fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
@@ -174,8 +164,8 @@ impl DecodeIMAP for MessageData {
     }
 }
 
-impl DecodeIMAP for MessageDataComponent {
-    fn can_match(s:String) -> bool {
+impl DecodeProtocol for MessageDataComponent {
+    fn can_parse(s:String) -> bool {
         s.starts_with("EXPUNGE") || s.starts_with("FETCH ")
     }
 
@@ -195,8 +185,8 @@ impl DecodeIMAP for MessageDataComponent {
     }
 }
 
-impl DecodeIMAP for MsgAtt {
-    fn can_match(s:String) -> bool {
+impl DecodeProtocol for MsgAtt {
+    fn can_parse(s:String) -> bool {
         s.starts_with("(") && s.contains(")")
     }
 
@@ -206,12 +196,12 @@ impl DecodeIMAP for MsgAtt {
 
         while !remaining_string.starts_with(")") {
             match remaining_string.to_string() {
-                s if  MsgAttStatic::can_match(s.to_string()) => {
+                s if  MsgAttStatic::can_parse(s.to_string()) => {
                     let (rs,next_part) =  MsgAttStatic::parse_new(s.to_string())?;
                     *remaining_string = rs;
                     response_components.push(MsgAttComponent::MsgAttStatic(next_part));
                 }
-                s if MsgAttDynamic::can_match(s.to_string()) => {
+                s if MsgAttDynamic::can_parse(s.to_string()) => {
                     let (rs,next_part) =  MsgAttDynamic::parse_new(s.to_string())?;
                     *remaining_string = rs;
                     response_components.push(MsgAttComponent::MsgAttDynamic(next_part));
@@ -227,8 +217,8 @@ impl DecodeIMAP for MsgAtt {
     }
 }
 
-impl DecodeIMAP for MsgAttDynamic {
-    fn can_match(s:String) -> bool {
+impl DecodeProtocol for MsgAttDynamic {
+    fn can_parse(s:String) -> bool {
         todo!()
     }
 
@@ -236,8 +226,8 @@ impl DecodeIMAP for MsgAttDynamic {
         todo!()
     }
 }
-impl DecodeIMAP for MsgAttStatic {
-    fn can_match(s:String) -> bool {
+impl DecodeProtocol for MsgAttStatic {
+    fn can_parse(s:String) -> bool {
         s.starts_with("ENVELOPE") || s.starts_with("RFC822") || 
         s.starts_with("BODY")|| s.starts_with("RFC822.SIZE")|| 
         s.starts_with("UID")
@@ -262,12 +252,12 @@ impl DecodeIMAP for MsgAttStatic {
                 Ok((rest,MsgAttStatic::RFC822Size(part)))
             }
             
-            s if MsgAttStaticBodyStructuredComponent::can_match(s.to_string()) => {
+            s if MsgAttStaticBodyStructuredComponent::can_parse(s.to_string()) => {
                 let (rest,part) = MsgAttStaticBodyStructuredComponent::parse_new(s)?;
                 Ok((rest,MsgAttStatic::StructuredBody(part)))
             }
 
-            s if MsgAttStaticBodyNonStructuredComponent::can_match(s.to_string()) => {
+            s if MsgAttStaticBodyNonStructuredComponent::can_parse(s.to_string()) => {
                 let (rest,part) = MsgAttStaticBodyNonStructuredComponent::parse_new(s)?;
                 Ok((rest,MsgAttStatic::NonStructuredBody(part)))
             }
@@ -277,8 +267,8 @@ impl DecodeIMAP for MsgAttStatic {
     }
 }
 
-impl DecodeIMAP for MsgAttStaticBodyStructuredComponent {
-    fn can_match(s:String) -> bool {
+impl DecodeProtocol for MsgAttStaticBodyStructuredComponent {
+    fn can_parse(s:String) -> bool {
         s.starts_with("BODY ") || s.starts_with("BODYSTRUCTURE ")
     }
 
@@ -303,8 +293,8 @@ impl DecodeIMAP for MsgAttStaticBodyStructuredComponent {
     }
 }
 
-impl DecodeIMAP for MsgAttStaticBodyNonStructuredComponent {
-    fn can_match(s:String) -> bool {
+impl DecodeProtocol for MsgAttStaticBodyNonStructuredComponent {
+    fn can_parse(s:String) -> bool {
         s.starts_with("BODY")
     }
 
@@ -325,8 +315,8 @@ impl DecodeIMAP for MsgAttStaticBodyNonStructuredComponent {
     }
 }
 
-impl DecodeIMAP for String {
-    fn can_match(s:String) -> bool {
+impl DecodeProtocol for String {
+    fn can_parse(s:String) -> bool {
         s.starts_with("{") || s.starts_with("\"") 
     }
 
@@ -354,9 +344,9 @@ impl DecodeIMAP for String {
     }
 }
 
-impl DecodeIMAP for NString {
-    fn can_match(s:String) -> bool {
-        String::can_match(s.to_string()) || s.starts_with("NIL")
+impl DecodeProtocol for NString {
+    fn can_parse(s:String) -> bool {
+        String::can_parse(s.to_string()) || s.starts_with("NIL")
     }
 
     fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
@@ -365,7 +355,7 @@ impl DecodeIMAP for NString {
                 let rest = remove_start("NIL", s)?;
                 Ok((rest,None))
             }
-            s if String::can_match(s.to_string()) => {
+            s if String::can_parse(s.to_string()) => {
                 let (rest,part) = String::parse_new(s)?;
                 Ok((rest,Some(part)))   
             }
@@ -376,8 +366,8 @@ impl DecodeIMAP for NString {
     }
 }
 
-impl DecodeIMAP for MsgAttStaticRFC822Component {
-    fn can_match(s:String) -> bool {
+impl DecodeProtocol for MsgAttStaticRFC822Component {
+    fn can_parse(s:String) -> bool {
         todo!()
     }
 
@@ -386,8 +376,8 @@ impl DecodeIMAP for MsgAttStaticRFC822Component {
     }
 }
 
-impl DecodeIMAP for NzNumber {
-    fn can_match(s:String) -> bool {
+impl DecodeProtocol for NzNumber {
+    fn can_parse(s:String) -> bool {
         s.split(" ").next().unwrap_or("a").parse::<i64>().is_ok()
     }
 
@@ -398,8 +388,8 @@ impl DecodeIMAP for NzNumber {
     }
 }
 
-impl DecodeIMAP for RespCondBye {
-    fn can_match(s:String) -> bool {
+impl DecodeProtocol for RespCondBye {
+    fn can_parse(s:String) -> bool {
         s.starts_with("BYE ")
     }
 
@@ -411,8 +401,8 @@ impl DecodeIMAP for RespCondBye {
     }
 }
 
-impl DecodeIMAP for RespCondState {
-    fn can_match(s:String) -> bool {
+impl DecodeProtocol for RespCondState {
+    fn can_parse(s:String) -> bool {
         s.starts_with("OK ") || 
         s.starts_with("NO ") ||
         s.starts_with("BAD ")
@@ -444,33 +434,33 @@ impl DecodeIMAP for RespCondState {
     }
 } 
 
-impl DecodeIMAP for Response {
-    fn can_match(_s:String) -> bool {
+impl DecodeProtocol for Response {
+    fn can_parse(_s:String) -> bool {
         true
     }
 
     fn parse_new(s:String) -> Result<(String,Response),String> {
         let remaining_string : &mut String = &mut s.clone();
         let mut response_components : Vec<ResponseComponent> = Vec::new();
-        while ContinueReq::can_match(remaining_string.to_string()) || ResponseData::can_match(remaining_string.to_string()) {
-            if ContinueReq::can_match(remaining_string.to_string()) {
+        while ContinueReq::can_parse(remaining_string.to_string()) || ResponseData::can_parse(remaining_string.to_string()) {
+            if ContinueReq::can_parse(remaining_string.to_string()) {
                 let (rs,next_part) =  ContinueReq::parse_new(remaining_string.to_string())?;
                 *remaining_string = rs;
                 response_components.push(ResponseComponent::ContinueReq(next_part));
-            } else if ResponseData::can_match(remaining_string.to_string()) {
+            } else if ResponseData::can_parse(remaining_string.to_string()) {
                 let (rs,next_part) =  ResponseData::parse_new(remaining_string.to_string())?;
                 *remaining_string = rs;
                 response_components.push(ResponseComponent::ResponseData(next_part));
             }
         }
-        if !ResponseDone::can_match(s) {return Err("ResponseDone not found".to_string());}
+        if !ResponseDone::can_parse(s) {return Err("ResponseDone not found".to_string());}
         let (rest,response_done) = ResponseDone::parse_new(remaining_string.to_string())?;
         Ok((rest,Response { response_components, response_done}))
     }
 }
 
-impl DecodeIMAP for ResponseData {
-    fn can_match(s:String) -> bool {
+impl DecodeProtocol for ResponseData {
+    fn can_parse(s:String) -> bool {
         s.starts_with("* ") && s.contains("\r\n")
     }
 
@@ -478,17 +468,17 @@ impl DecodeIMAP for ResponseData {
         let mut remaining_string = remove_start("* ",s)?;
         let mut rd = Err("No response data component");
         match remaining_string.to_string() {
-            s if RespCondBye::can_match(s.to_string()) => {
+            s if RespCondBye::can_parse(s.to_string()) => {
                 let (rs,next_part) =  RespCondBye::parse_new(s.to_string())?;
                 remaining_string = rs;
                 rd = Ok(ResponseData::RespCondBye(next_part));
             }
-            s if RespCondState::can_match(s.to_string()) => {
+            s if RespCondState::can_parse(s.to_string()) => {
                 let (rs,next_part) =  RespCondState::parse_new(s.to_string())?;
                 remaining_string = rs;
                 rd = Ok(ResponseData::RespCondState(next_part));
             }
-            s if MessageData::can_match(s.to_string()) => {
+            s if MessageData::can_parse(s.to_string()) => {
                 let (rs,next_part) =  MessageData::parse_new(s.to_string())?;
                 remaining_string = rs;
                 rd = Ok(ResponseData::MessageData(next_part));
@@ -500,18 +490,18 @@ impl DecodeIMAP for ResponseData {
     }
 }
 
-impl DecodeIMAP for ResponseDone {
-    fn can_match(s:String) -> bool {
-        ResponseFatal::can_match(s.to_string()) || ResponseTagged::can_match(s)
+impl DecodeProtocol for ResponseDone {
+    fn can_parse(s:String) -> bool {
+        ResponseFatal::can_parse(s.to_string()) || ResponseTagged::can_parse(s)
     }
 
     fn parse_new(s:String) -> Result<(String,ResponseDone),String> {
         match s.to_string() {
-            s if ResponseFatal::can_match(s.to_string()) => {
+            s if ResponseFatal::can_parse(s.to_string()) => {
                 let (rest,part) = ResponseFatal::parse_new(s)?;
                 Ok((rest,ResponseDone::ResponseFatal(part)))
             }
-            s if ResponseTagged::can_match(s.to_string()) => {
+            s if ResponseTagged::can_parse(s.to_string()) => {
                 let (rest,part) = ResponseTagged::parse_new(s)?;
                 Ok((rest,ResponseDone::ResponseTagged(part)))
             }
@@ -520,8 +510,8 @@ impl DecodeIMAP for ResponseDone {
     }
 }
 
-impl DecodeIMAP for ResponseFatal {
-    fn can_match(s:String) -> bool {
+impl DecodeProtocol for ResponseFatal {
+    fn can_parse(s:String) -> bool {
         s.starts_with("* ") && s.contains("\r\n")
     }
 
@@ -533,9 +523,9 @@ impl DecodeIMAP for ResponseFatal {
     }
 }
 
-impl DecodeIMAP for ResponseTagged {
-    fn can_match(s:String) -> bool {
-        Tag::can_match(s)
+impl DecodeProtocol for ResponseTagged {
+    fn can_parse(s:String) -> bool {
+        Tag::can_parse(s)
     }
 
     fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
@@ -548,13 +538,13 @@ impl DecodeIMAP for ResponseTagged {
     }
 }
 
-impl DecodeIMAP for RespText {
-    fn can_match(s:String) -> bool {
+impl DecodeProtocol for RespText {
+    fn can_parse(s:String) -> bool {
         true
     }
 
     fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
-       if RespTextCode::can_match(s.to_string()) {
+       if RespTextCode::can_parse(s.to_string()) {
             let (rest,code) = RespTextCode::parse_new(s)?;
             let (rest,text) = Text::parse_new(rest)?;
             Ok((rest,RespText {resp_text_code : Some(code), text}))
@@ -568,8 +558,8 @@ impl DecodeIMAP for RespText {
     }
 }
 
-impl DecodeIMAP for RespTextCode {
-    fn can_match(s:String) -> bool {
+impl DecodeProtocol for RespTextCode {
+    fn can_parse(s:String) -> bool {
         s.starts_with("[") && s.contains("] ") 
     }
 
@@ -580,14 +570,14 @@ impl DecodeIMAP for RespTextCode {
     }
 }
 
-impl DecodeIMAP for Section {
-    fn can_match(s:String) -> bool {
+impl DecodeProtocol for Section {
+    fn can_parse(s:String) -> bool {
         s.starts_with("[")
     }
 
     fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
         let rest = remove_start("[", s)?;
-        if SectionSpec::can_match(rest.to_string()) {
+        if SectionSpec::can_parse(rest.to_string()) {
             let (rest, part) = SectionSpec::parse_new(rest)?;
             let rest = remove_start("]", rest)?;
             Ok((rest,Some(part)))
@@ -598,18 +588,18 @@ impl DecodeIMAP for Section {
     }
 }
 
-impl DecodeIMAP for SectionSpec {
-    fn can_match(s:String) -> bool {
+impl DecodeProtocol for SectionSpec {
+    fn can_parse(s:String) -> bool {
         !s.starts_with("]")
     }
 
     fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
         match s.to_string() {
-            s if SectionMsgtext::can_match(s.to_string()) => {
+            s if SectionMsgtext::can_parse(s.to_string()) => {
                 let (rest,part) = SectionMsgtext::parse_new(s)?;
                 Ok((rest,SectionSpec::SectionMsgtext(part)))
             }
-            s if SectionSpecComponent::can_match(s.to_string()) => {
+            s if SectionSpecComponent::can_parse(s.to_string()) => {
                 let (rest,part) = SectionSpecComponent::parse_new(s)?;
                 Ok((rest,SectionSpec::SectionSpecComponent(part)))
                 
@@ -619,9 +609,9 @@ impl DecodeIMAP for SectionSpec {
     }
 }
 
-impl DecodeIMAP for SectionSpecComponent {
-    fn can_match(s:String) -> bool {
-        SectionPart::can_match(s)
+impl DecodeProtocol for SectionSpecComponent {
+    fn can_parse(s:String) -> bool {
+        SectionPart::can_parse(s)
     }
 
     fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
@@ -637,9 +627,9 @@ impl DecodeIMAP for SectionSpecComponent {
     }
 }
 
-impl DecodeIMAP for SectionText {
-    fn can_match(s:String) -> bool {
-        s.starts_with("MIME") || SectionMsgtext::can_match(s)
+impl DecodeProtocol for SectionText {
+    fn can_parse(s:String) -> bool {
+        s.starts_with("MIME") || SectionMsgtext::can_parse(s)
     }
 
     fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
@@ -648,7 +638,7 @@ impl DecodeIMAP for SectionText {
                 let rest = remove_start("MIME", s)?;
                 Ok((rest,SectionText::MIME))
             }
-            s if SectionMsgtext::can_match(s.to_string()) => {
+            s if SectionMsgtext::can_parse(s.to_string()) => {
                 let (rest,part) = SectionMsgtext::parse_new(s)?;
                 Ok((rest,SectionText::SectionMsgtext(part)))
             }
@@ -659,8 +649,8 @@ impl DecodeIMAP for SectionText {
 
 
 
-impl DecodeIMAP for SectionMsgtext {
-    fn can_match(s:String) -> bool {
+impl DecodeProtocol for SectionMsgtext {
+    fn can_parse(s:String) -> bool {
         s.starts_with("HEADER") ||
         s.starts_with("TEXT")
     }
@@ -690,15 +680,15 @@ impl DecodeIMAP for SectionMsgtext {
         }
     }
 }
-impl DecodeIMAP for SectionPart {
-    fn can_match(s:String) -> bool {
-        NzNumber::can_match(s)
+impl DecodeProtocol for SectionPart {
+    fn can_parse(s:String) -> bool {
+        NzNumber::can_parse(s)
     }
 
     fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
         let mut rest = s;
         let mut numbers = Vec::new();
-        while NzNumber::can_match(rest.to_string()) {
+        while NzNumber::can_parse(rest.to_string()) {
             let (rs,part) = NzNumber::parse_new(rest)?; 
             numbers.push(part);
             rest = remove_start(".", rs)?;
@@ -707,8 +697,8 @@ impl DecodeIMAP for SectionPart {
     }
 }
 
-impl DecodeIMAP for HeaderList {
-    fn can_match(s:String) -> bool {
+impl DecodeProtocol for HeaderList {
+    fn can_parse(s:String) -> bool {
         s.starts_with("(")
     }
 
@@ -727,17 +717,17 @@ impl DecodeIMAP for HeaderList {
         Ok((rest,HeaderList {header_fld_names}))
     }
 }
-impl DecodeIMAP for AString {
-    fn can_match(s:String) -> bool {
+impl DecodeProtocol for AString {
+    fn can_parse(s:String) -> bool {
         //TODO:Add CTL here and the other 3 occurances
         let invalid_astring_chars = "(){ %*\"\\";
-        !invalid_astring_chars.contains(s.chars().next().unwrap_or('\n')) || String::can_match(s)
+        !invalid_astring_chars.contains(s.chars().next().unwrap_or('\n')) || String::can_parse(s)
     }
 
     fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
         let invalid_astring_chars = "(){ \r%*\"\\";
         match s {
-            s if String::can_match(s.to_string()) => {
+            s if String::can_parse(s.to_string()) => {
                 let (rest,part) = String::parse_new(s)?;
                 Ok((rest,AString::String(part)))
             }
@@ -752,8 +742,8 @@ impl DecodeIMAP for AString {
     }
 }
 
-impl DecodeIMAP for Tag {
-    fn can_match(s:String) -> bool {
+impl DecodeProtocol for Tag {
+    fn can_parse(s:String) -> bool {
         true
     }
 
@@ -765,8 +755,8 @@ impl DecodeIMAP for Tag {
     }
 }
 
-impl DecodeIMAP for Text {
-    fn can_match(_s:String) -> bool {
+impl DecodeProtocol for Text {
+    fn can_parse(_s:String) -> bool {
         true
     }
 

@@ -5,11 +5,9 @@ pub fn execute_command(stream :&mut TcpStream, message_num: &mut String, command
     match command {
         "retrieve"=>retrieve_command(stream,message_num, command_number),
         "parse"=>parse_command(stream, message_num, command_number),
-        "mime"=>mime_command(message_num, command, command_number),
+        "mime"=>mime_command(stream, message_num, command_number),
         "list"=>list_command(stream, command_number),
         _=>()
     }
-
-
-
 }
+
