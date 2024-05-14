@@ -7,13 +7,13 @@ pub(crate) fn parse_response(s:String) -> Result<Response,String> {
     Ok(resp)
 }
 
-fn remove_start(start:&str,string:String) -> Result<String,String> {
+pub(crate) fn remove_start(start:&str,string:String) -> Result<String,String> {
     if !string.starts_with(start) {return Err(format!("String didn't start with {}", start));}
     let (_,rest) = string.split_at(start.len());
     Ok(rest.to_string())
 }
 
-trait DecodeIMAP {
+pub(crate) trait DecodeIMAP {
     fn can_match(s:String) -> bool;
     
     fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized;
@@ -217,7 +217,7 @@ impl DecodeIMAP for MsgAttStaticBodyNonStructuredComponent {
 
 impl DecodeIMAP for NString {
     fn can_match(s:String) -> bool {
-        true || s.starts_with("NIL")
+        s.starts_with("{") || s.starts_with("\"") || s.starts_with("NIL")
     }
 
     fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
@@ -226,6 +226,7 @@ impl DecodeIMAP for NString {
                 let rest = remove_start("NIL", s)?;
                 Ok((rest,None))
             }
+            //literal
             s if (s.starts_with("{")) => {
                 let rest = remove_start("{", s)?;
                 let (rest,number) = Number::parse_new(rest)?;
@@ -233,8 +234,17 @@ impl DecodeIMAP for NString {
                 let (string,rest) = rest.split_at(number.try_into().unwrap());
                 Ok((rest.to_string(),Some(string.to_string())))
             }
+            //quoted
+            s if (s.starts_with("\""))  => {
+                //TODO: do we need to convert backslash special chars in the quoted strings
+                let rest = remove_start("\"", s)?;
+                let invalid_chars = "\r\n\"";
+                let (chars,rest) = rest.split_at(rest.chars().position(|c| invalid_chars.contains(c)).unwrap_or(rest.len()));
+                let rest = remove_start("\"", rest.to_string())?;
+                Ok((rest.to_string(),Some(chars.to_string())))
+            }
             _ => {
-                Err("asd".to_string())
+                Err("Nstring parse error".to_string())
             }
         }
     }
