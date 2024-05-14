@@ -39,7 +39,7 @@ pub fn parse_command(stream: &mut TcpStream, message_num: &mut String, command_n
 
     for i in addresses_from {
         if (i.addr_name.as_ref().unwrap_or(&"NIL".to_string())) != &"NIL".to_string() {
-            formatted_mailbox_name.push_str(i.addr_name.as_ref().unwrap_or(&"NIL".to_string()));
+            formatted_mailbox_name.push_str(&format!("\"{}\"", i.addr_name.as_ref().unwrap_or(&"NIL".to_string())));
         }
         formatted_mailbox.push_str(i.addr_mailbox.as_ref().unwrap_or(&"NIL".to_string()));
         formatted_mailbox.push_str("@");
@@ -62,7 +62,7 @@ pub fn parse_command(stream: &mut TcpStream, message_num: &mut String, command_n
 
     eprintln!("{:?}", env_from.address);
     if formatted_mailbox_name != "" {
-        println!("From: {} {}",formatted_mailbox_name, formatted_mailbox);
+        println!("From: {} <{}>",formatted_mailbox_name, formatted_mailbox);
     }
     else {
         println!("From: {}",formatted_mailbox);
