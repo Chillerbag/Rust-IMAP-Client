@@ -23,7 +23,7 @@ use std::io::Result;
 
 // -------------------------------------------
 
-fn main() -> Result<()> {
+fn main() {
     // get command-line arguments
     let args: Vec<String> = env::args().collect();
 
@@ -110,7 +110,9 @@ fn main() -> Result<()> {
     send_command(&mut socket, command);
     read_response(&mut reader, &mut response, command_id);
     socket.shutdown(Shutdown::Both);
-    Ok(())
+    
+
+    return ();
 }
 
 
