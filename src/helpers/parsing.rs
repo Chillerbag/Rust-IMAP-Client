@@ -8,7 +8,7 @@ pub(crate) fn parse_response(s:String) -> Result<Response,String> {
 }
 
 pub(crate) fn remove_start(start:&str,string:String) -> Result<String,String> {
-    if !string.starts_with(start) {return Err(format!("String didn't start with {}", start));}
+    if !string.starts_with(start) {return Err(format!("String didn't start with \"{}\" full string is: {}", start,string));}
     let (_,rest) = string.split_at(start.len());
     Ok(rest.to_string())
 }
@@ -187,8 +187,8 @@ impl DecodeIMAP for MessageDataComponent {
             }
             s if s.starts_with("FETCH ") => {
                 let rest = remove_start("FETCH ", s)?;
-                let (rest,msgAtt) = MsgAtt::parse_new(rest)?;
-                Ok((rest.to_string(),MessageDataComponent::Fetch(msgAtt)))
+                let (rest,msg_att) = MsgAtt::parse_new(rest)?;
+                Ok((rest.to_string(),MessageDataComponent::Fetch(msg_att)))
             }
             _ => Err("MessageDataComponent parsing failure".to_string())
         }
@@ -311,7 +311,7 @@ impl DecodeIMAP for MsgAttStaticBodyNonStructuredComponent {
     fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
         let mut rest = remove_start("BODY", s)?;
         let (rs,section) = Section::parse_new(rest)?;
-        rest = rs;
+        rest =rs;
         let mut number = None;
         if rest.starts_with("<") {
             rest = remove_start("<", rest)?;
@@ -325,24 +325,20 @@ impl DecodeIMAP for MsgAttStaticBodyNonStructuredComponent {
     }
 }
 
-impl DecodeIMAP for NString {
+impl DecodeIMAP for String {
     fn can_match(s:String) -> bool {
-        s.starts_with("{") || s.starts_with("\"") || s.starts_with("NIL")
+        s.starts_with("{") || s.starts_with("\"") 
     }
 
     fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
         match s {
-            s if s.starts_with("NIL") => {
-                let rest = remove_start("NIL", s)?;
-                Ok((rest,None))
-            }
             //literal
             s if (s.starts_with("{")) => {
                 let rest = remove_start("{", s)?;
                 let (rest,number) = Number::parse_new(rest)?;
                 let rest = remove_start("}\r\n", rest)?;
                 let (string,rest) = rest.split_at(number.try_into().unwrap());
-                Ok((rest.to_string(),Some(string.to_string())))
+                Ok((rest.to_string(), string.to_string()))
             }
             //quoted
             s if (s.starts_with("\""))  => {
@@ -351,7 +347,27 @@ impl DecodeIMAP for NString {
                 let invalid_chars = "\r\n\"";
                 let (chars,rest) = rest.split_at(rest.chars().position(|c| invalid_chars.contains(c)).unwrap_or(rest.len()));
                 let rest = remove_start("\"", rest.to_string())?;
-                Ok((rest.to_string(),Some(chars.to_string())))
+                Ok((rest.to_string(),chars.to_string()))
+            }
+            _ => Err("String parse error".to_string())
+        }
+    }
+}
+
+impl DecodeIMAP for NString {
+    fn can_match(s:String) -> bool {
+        String::can_match(s.to_string()) || s.starts_with("NIL")
+    }
+
+    fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
+        match s {
+            s if s.starts_with("NIL") => {
+                let rest = remove_start("NIL", s)?;
+                Ok((rest,None))
+            }
+            s if String::can_match(s.to_string()) => {
+                let (rest,part) = String::parse_new(s)?;
+                Ok((rest,Some(part)))   
             }
             _ => {
                 Err("Nstring parse error".to_string())
@@ -588,9 +604,153 @@ impl DecodeIMAP for SectionSpec {
     }
 
     fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
-        todo!()
+        match s.to_string() {
+            s if SectionMsgtext::can_match(s.to_string()) => {
+                let (rest,part) = SectionMsgtext::parse_new(s)?;
+                Ok((rest,SectionSpec::SectionMsgtext(part)))
+            }
+            s if SectionSpecComponent::can_match(s.to_string()) => {
+                let (rest,part) = SectionSpecComponent::parse_new(s)?;
+                Ok((rest,SectionSpec::SectionSpecComponent(part)))
+                
+            }
+            _ => {Err("SectionSpec didnt match".to_string())}
+        }
     }
-} 
+}
+
+impl DecodeIMAP for SectionSpecComponent {
+    fn can_match(s:String) -> bool {
+        SectionPart::can_match(s)
+    }
+
+    fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
+        let (mut rest,section_part) = SectionPart::parse_new(s)?;
+        let mut section_text =None;
+        if rest.starts_with(".") {
+            rest = remove_start(".", rest)?;
+            let (rs,part) = SectionText::parse_new(rest)?;
+            rest = rs;
+            section_text = Some(part);
+        }
+        Ok((rest,SectionSpecComponent {section_part, section_text}))
+    }
+}
+
+impl DecodeIMAP for SectionText {
+    fn can_match(s:String) -> bool {
+        s.starts_with("MIME") || SectionMsgtext::can_match(s)
+    }
+
+    fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
+        match s {
+            s if s.starts_with("MIME") => {
+                let rest = remove_start("MIME", s)?;
+                Ok((rest,SectionText::MIME))
+            }
+            s if SectionMsgtext::can_match(s.to_string()) => {
+                let (rest,part) = SectionMsgtext::parse_new(s)?;
+                Ok((rest,SectionText::SectionMsgtext(part)))
+            }
+            _ => Err("SectionText parsing failure".to_string())
+        }
+    }
+}
+
+
+
+impl DecodeIMAP for SectionMsgtext {
+    fn can_match(s:String) -> bool {
+        s.starts_with("HEADER") ||
+        s.starts_with("TEXT")
+    }
+
+    fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
+        match s {
+            s if s.starts_with("HEADER.FIELDS ") => {
+                let mut rest = remove_start("HEADER.FIELDS ", s)?;
+                let mut not = false;
+                if rest.starts_with(".NOT") {
+                    rest = remove_start(".NOT", rest)?;
+                    not = true;
+                }
+                let (rs,header_list) = HeaderList::parse_new(rest)?;
+                Ok((rs,SectionMsgtext::HeaderFields((not,header_list))))
+
+            }
+            s if s.starts_with("HEADER") => {
+                let rest = remove_start("HEADER", s)?;
+                Ok((rest,SectionMsgtext::Header))
+            }
+            s if s.starts_with("TEXT") => {
+                let rest = remove_start("TEXT", s)?;
+                Ok((rest,SectionMsgtext::Text))
+            }
+            _ => Err("SectionMsgtext parsing failure".to_string())
+        }
+    }
+}
+impl DecodeIMAP for SectionPart {
+    fn can_match(s:String) -> bool {
+        NzNumber::can_match(s)
+    }
+
+    fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
+        let mut rest = s;
+        let mut numbers = Vec::new();
+        while NzNumber::can_match(rest.to_string()) {
+            let (rs,part) = NzNumber::parse_new(rest)?; 
+            numbers.push(part);
+            rest = remove_start(".", rs)?;
+        }
+        Ok((rest,SectionPart {numbers}))
+    }
+}
+
+impl DecodeIMAP for HeaderList {
+    fn can_match(s:String) -> bool {
+        s.starts_with("(")
+    }
+
+    fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
+        let mut header_fld_names = Vec::new();
+        let rest = remove_start("(", s)?;
+        let (mut rest,part) = HeaderFldName::parse_new(rest)?;
+        header_fld_names.push(part);
+        while !rest.starts_with(")") {
+            rest = remove_start(" ", rest)?;
+            let (rs,part) = HeaderFldName::parse_new(rest)?;
+            header_fld_names.push(part);
+            rest =rs;
+        }
+        let rest = remove_start(")", rest)?;
+        Ok((rest,HeaderList {header_fld_names}))
+    }
+}
+impl DecodeIMAP for AString {
+    fn can_match(s:String) -> bool {
+        //TODO:Add CTL here and the other 3 occurances
+        let invalid_astring_chars = "(){ %*\"\\";
+        !invalid_astring_chars.contains(s.chars().next().unwrap_or('\n')) || String::can_match(s)
+    }
+
+    fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
+        let invalid_astring_chars = "(){ \r%*\"\\";
+        match s {
+            s if String::can_match(s.to_string()) => {
+                let (rest,part) = String::parse_new(s)?;
+                Ok((rest,AString::String(part)))
+            }
+            s if !invalid_astring_chars.contains(s.chars().next().unwrap_or('\r')) =>{                
+                let (chars,ss) = s.split_at(s.chars().position(|c| invalid_astring_chars.contains(c)).unwrap_or(s.len()));
+
+                Ok((ss.to_string(),AString::Achars(chars.to_string())))
+            }
+
+            _ => Err("Astring parsing failure".to_string())
+        }
+    }
+}
 
 impl DecodeIMAP for Tag {
     fn can_match(s:String) -> bool {
@@ -598,7 +758,7 @@ impl DecodeIMAP for Tag {
     }
 
     fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
-        let invalid_chars = "(){\r%*\"\\";
+        let invalid_chars = "(){ %*\"\\+";
         let (chars,ss) = s.split_at(s.chars().position(|c| invalid_chars.contains(c)).unwrap_or(s.len()));
 
         Ok((ss.to_string(),Tag {chars:chars.to_string()}))

@@ -1,7 +1,11 @@
 use std::vec::Vec;
 use std::option::Option;
 
-pub(crate) type AString = String;
+#[derive(Debug)]
+pub(crate) enum AString {
+    String(String),
+    Achars(String)
+}
 
 pub(crate) type Atom = String;
 #[derive(Debug)]
@@ -51,7 +55,11 @@ pub(crate) enum FlagFetch {
 
 pub(crate) type HeaderFldName = AString;
 
-pub(crate) type HeaderList =  Vec<HeaderFldName>;
+
+#[derive(Debug)]
+pub(crate) struct HeaderList {
+    pub(crate) header_fld_names : Vec<HeaderFldName>
+} 
 
 #[derive(Debug)]
 pub(crate) struct MessageData {
@@ -206,12 +214,27 @@ pub(crate) enum SectionMsgtext {
     Text
 }
 
-pub(crate) type SectionPart = Vec<NzNumber>;
+#[derive(Debug)]
+pub(crate) struct SectionPart {
+    pub(crate) numbers: Vec<NzNumber>
+}
 
 #[derive(Debug)]
 pub(crate) enum SectionSpec {
     SectionMsgtext(SectionMsgtext),
-    SectionPart(SectionPart),
+    SectionSpecComponent(SectionSpecComponent),
+}
+
+#[derive(Debug)]
+pub(crate) struct SectionSpecComponent {
+    pub(crate) section_part : SectionPart,
+    pub(crate) section_text : Option<SectionText>
+}
+
+#[derive(Debug)]
+pub(crate) enum SectionText {
+    MIME,
+    SectionMsgtext(SectionMsgtext)
 }
 
 #[derive(Debug)]
