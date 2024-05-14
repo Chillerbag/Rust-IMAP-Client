@@ -62,15 +62,15 @@ pub fn parse_command(stream: &mut TcpStream, message_num: &mut String, command_n
 
     eprintln!("{:?}", env_from.address);
     if formatted_mailbox_name != "" {
-        println!("From: {:?} {:?}",formatted_mailbox_name, formatted_mailbox);
+        println!("From: {} {}",formatted_mailbox_name, formatted_mailbox);
     }
     else {
-        println!("From: {:?}",formatted_mailbox);
+        println!("From: {}",formatted_mailbox);
     }
-    println!("To: {:?}",formatted_mailbox_to);
-    println!("Date: {:?}",env_date.as_ref().unwrap_or(&"NIL".to_string()));
+    println!("To: {}",formatted_mailbox_to);
+    println!("Date: {}",env_date.as_ref().unwrap_or(&"NIL".to_string()));
     if env_subject.as_ref().unwrap_or(&"NIL".to_string()) != "NIL" {
-        println!("Subject: {:?}",env_subject.as_ref().unwrap());
+        println!("Subject: {}",env_subject.as_ref().unwrap());
     }
     else {
         println!("Subject: <No subject>")
