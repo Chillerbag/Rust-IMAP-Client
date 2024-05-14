@@ -67,7 +67,12 @@ pub fn parse_command(stream: &mut TcpStream, message_num: &mut String, command_n
     else {
         println!("From: {}",formatted_mailbox);
     }
-    println!("To: {}",formatted_mailbox_to);
+    if addresses_to.len() > 0 {
+        println!("To: {}",formatted_mailbox_to);
+    }
+    else {
+        println("To:")
+    }
     println!("Date: {}",env_date.as_ref().unwrap_or(&"NIL".to_string()));
     if env_subject.as_ref().unwrap_or(&"NIL".to_string()) != "NIL" {
         println!("Subject: {}",env_subject.as_ref().unwrap());
