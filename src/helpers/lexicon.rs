@@ -4,6 +4,18 @@ use std::option::Option;
 pub(crate) type AString = String;
 
 pub(crate) type Atom = String;
+#[derive(Debug)]
+pub(crate) struct Address {
+    pub(crate) addr_name:NString,
+    pub(crate) addr_adl:NString,
+    pub(crate) addr_mailbox:NString,
+    pub(crate) addr_host:NString,
+}
+
+#[derive(Debug)]
+pub(crate) struct env_NAddress {
+    pub(crate) address:Vec<Address>
+}
 
 #[derive(Debug)]
 pub(crate) struct Base64{ base64:String}
@@ -65,13 +77,29 @@ pub(crate) type MsgAttDynamic = Vec<FlagFetch>;
 
 #[derive(Debug)]
 pub(crate) enum MsgAttStatic {
-    // Envolope(Envolope),
+    Envelope(Envelope),
     // Internaldate(DateTime),
     RFC822(MsgAttStaticRFC822Component),
     RFC822Size(Number),
     NonStructuredBody(MsgAttStaticBodyNonStructuredComponent),
     StructuredBody(MsgAttStaticBodyStructuredComponent),
     // UID(UID),
+}
+
+
+
+#[derive(Debug)]
+pub(crate) struct Envelope {
+    pub(crate) env_date:NString,
+    pub(crate) env_subject:NString,
+    pub(crate) env_from:env_NAddress,
+    pub(crate) env_sender:env_NAddress,
+    pub(crate) env_reply_to:env_NAddress,
+    pub(crate) env_to:env_NAddress,
+    pub(crate) env_cc:env_NAddress,
+    pub(crate) env_bcc:env_NAddress,
+    pub(crate) env_in_reply_to:NString,
+    pub(crate) env_message_id:NString,
 }
 
 #[derive(Debug)]

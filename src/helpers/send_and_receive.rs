@@ -38,11 +38,11 @@ pub fn read_response(reader: &mut BufReader<TcpStream>, buffer: &mut String, com
         line_buffer.clear();
         match reader.read_line(&mut line_buffer) {
             // probably can do if let Err(err) to avoid checking nothing with Ok(_) which is ugly
-            Ok(_) => { if line_buffer.is_empty() 
+            Ok(_) if line_buffer.is_empty() => 
                 {
                     exit_server_response();
                 }
-            }
+            Ok(_) => {}  
             Err(err) => {
                 eprintln!("Error reading from stream (this should never happen): {}", err);
                 process::exit(5);
@@ -68,7 +68,11 @@ pub fn read_response_object(reader: &mut BufReader<TcpStream>, buffer: &mut Stri
         line_buffer.clear();
         match reader.read_line(&mut line_buffer) {
             // probably can do if let Err(err) to avoid checking nothing with Ok(_) which is ugly
-            Ok(_) => (),
+            Ok(_) if line_buffer.is_empty() => 
+                {
+                    exit_server_response();
+                }
+            Ok(_) => {}
             Err(err) => {
                 eprintln!("Error reading from stream (this should never happen): {}", err);
                 process::exit(5);

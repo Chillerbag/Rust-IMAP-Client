@@ -54,6 +54,111 @@ impl DecodeIMAP for ContinueReq {
     }
 }
 
+impl DecodeIMAP for env_NAddress {
+    fn can_match(s:String) -> bool {
+        s.starts_with("(") ||  s.starts_with("NIL")
+    }
+    fn parse_new(s:String) -> Result<(String, Self), String> where Self: Sized {
+        if s.starts_with("NIL") {
+            let rest = remove_start("NIL", s)?;
+            let addresses:Vec<Address> = Vec::new();
+            return Ok((rest, env_NAddress { address: addresses}))
+        }
+        match s {
+            s if s.starts_with("(") => {
+                let mut rest = remove_start("(", s)?;
+                let mut addresses:Vec<Address> = Vec::new();
+                
+                while !rest.starts_with(")") {
+                    match rest {
+                        s if s.starts_with("NIL") => {
+                            rest = remove_start("NIL", s)?;
+                        }
+                        _ => {
+                            let (new_rest, address) = Address::parse_new(rest)?;
+                            rest = new_rest;
+                            addresses.push(address);
+                            
+                            if rest.starts_with(" ") {
+                                rest = remove_start(" ", rest)?;
+                            } else {
+                                break; 
+                            }
+                        }
+                    }
+                }
+                
+                if rest.starts_with(")") {
+                    rest = remove_start(")", rest)?;
+                } else {
+                    return Err("Invalid format: ')' not found".to_string());
+                }
+                
+                Ok((rest, env_NAddress { address: addresses}))
+            }
+            _ => Err("Envelope parsing failure".to_string())
+        }
+    }
+}
+
+
+impl DecodeIMAP for Envelope {
+    fn can_match(s:String) -> bool {
+        s.starts_with("(") && s.contains("\r\n")
+    }
+    fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
+        let rest = remove_start("(", s)?;
+        let (rest,env_date) = NString::parse_new(rest)?;
+        let rest = remove_start(" ", rest)?;
+        let (rest,env_subject) = NString::parse_new(rest)?;
+        let rest = remove_start(" ", rest)?;
+        let (rest,env_from) = env_NAddress::parse_new(rest)?;
+        let rest = remove_start(" ", rest)?;
+        let (rest,env_sender) = env_NAddress::parse_new(rest)?;
+        let rest = remove_start(" ", rest)?;
+        let (rest,env_reply_to) = env_NAddress::parse_new(rest)?;
+        let rest = remove_start(" ", rest)?;
+        let (rest,env_to) = env_NAddress::parse_new(rest)?;
+        let rest = remove_start(" ", rest)?;
+        let (rest,env_cc) = env_NAddress::parse_new(rest)?;
+        let rest = remove_start(" ", rest)?;
+        let (rest,env_bcc) = env_NAddress::parse_new(rest)?;
+        let rest = remove_start(" ", rest)?;
+        let (rest,env_in_reply_to) = NString::parse_new(rest)?;
+        let rest = remove_start(" ", rest)?;
+        let (rest,env_message_id) = NString::parse_new(rest)?;
+        let rest = remove_start(")", rest)?;
+        Ok((rest,Envelope{env_date, env_subject, env_from, env_sender, env_in_reply_to, env_to, env_bcc, env_reply_to, env_cc, env_message_id}))
+        
+    }
+    
+}
+
+impl DecodeIMAP for Address {
+    fn can_match(s:String) -> bool {
+        s.starts_with("(")
+    }
+    fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
+        match s {
+            s if s.starts_with("(") => {
+                let rest = remove_start("(", s)?;
+                let (rest,addr_name) = NString::parse_new(rest)?;
+                let rest = remove_start(" ", rest)?;
+                let (rest,addr_adl) = NString::parse_new(rest)?;
+                let rest = remove_start(" ", rest)?;
+                let (rest,addr_mailbox) = NString::parse_new(rest)?;
+                let rest = remove_start(" ", rest)?;
+                let (rest,addr_host) = NString::parse_new(rest)?;
+                let rest = remove_start(")", rest)?;        
+                Ok((rest,Address{addr_name, addr_adl, addr_mailbox, addr_host}))
+                
+            }
+            _ => Err("Address parsing failure".to_string())
+        }
+        
+    }
+    
+}
 impl DecodeIMAP for MessageData {
     fn can_match(s:String) -> bool {
         let Some((fs,ss)) = s.split_once(" ") else {return false;};
@@ -140,7 +245,12 @@ impl DecodeIMAP for MsgAttStatic {
 
     fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
         match s {
-            s if s.starts_with("RFC822") => {
+            s if s.starts_with("ENVELOPE ") => {
+                let rest = remove_start("ENVELOPE ", s)?;
+                let (rest,part) = Envelope::parse_new(rest)?;
+                Ok((rest,MsgAttStatic::Envelope(part)))
+            }
+            s if s.starts_with("RFC822 ") => {
                 let rest = remove_start("RFC822 ", s)?;
                 let (rest,part) = MsgAttStaticRFC822Component::parse_new(rest)?;
                 Ok((rest,MsgAttStatic::RFC822(part)))
