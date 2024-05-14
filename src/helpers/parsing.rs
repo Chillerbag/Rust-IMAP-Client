@@ -327,7 +327,7 @@ impl DecodeIMAP for Response {
                 response_components.push(ResponseComponent::ResponseData(next_part));
             }
         }
-        if !ResponseData::can_match(s) {return Err("ResponseDone not found".to_string());}
+        if !ResponseDone::can_match(s) {return Err("ResponseDone not found".to_string());}
         let (rest,response_done) = ResponseDone::parse_new(remaining_string.to_string())?;
         Ok((rest,Response { response_components, response_done}))
     }

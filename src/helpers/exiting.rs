@@ -15,13 +15,18 @@ pub(crate) fn exit_server_response() -> ! {
     process::exit(3)
 }
 
+pub(crate) fn exit_server_response_with(error:String) -> ! {
+    println!("{}",error);
+    process::exit(3)
+}
+
 pub(crate) fn exit_parsing() -> ! {
     println!("Parsing failure in server response");
     process::exit(4)
 }
 
-pub(crate) fn exit_parsing_with(a :String) -> ! {
-    println!("Parsing failure in server response: {}",a);
+pub(crate) fn exit_parsing_with(error :String) -> ! {
+    println!("{}",error);
     process::exit(4)
 }
 
