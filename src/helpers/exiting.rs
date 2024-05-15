@@ -1,3 +1,4 @@
+use std::process;
 
 /*
 -------------------EXITING.RS-------------------
@@ -7,8 +8,6 @@ publically accessible so we can exit this way
 without having to reuse code. 
 -------------------------------------------------
 */
-
-use std::process;
 
 pub(crate) fn exit_command_line() -> ! {
     println!("Commandline input failure");

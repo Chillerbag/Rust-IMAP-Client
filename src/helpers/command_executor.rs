@@ -1,4 +1,7 @@
+// our function imports
 use crate::commands::{mime::mime_command, parse::parse_command, retrieve::retrieve_command, list::list_command};
+
+// rust std imports
 use std::net::TcpStream;
 
 /*

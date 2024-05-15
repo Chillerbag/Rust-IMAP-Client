@@ -1,20 +1,35 @@
-use std::net::TcpStream;
-use std::io::BufReader;
+// our function imports
 use crate::commands::send_and_receive::*;
 use crate::helpers::lexicon::rfc3501::*;
 use crate::helpers::exiting::*;
 
+// rust std imports
+use std::net::TcpStream;
+use std::io::BufReader;
 
+
+/*
+-------------------PARSE_COMMAND------------------
+send the command FETCH (number) ENVELOPE 
+read the response into a vector of the header
+read the vector and parse the string into the output
+-------------------------------------------------
+*/
 pub fn parse_command(stream: &mut TcpStream, message_num: &mut String, command_number: &mut u32) {
     eprintln!("Parse command");
+
+    /* format and send the command */
     let command_id = format!("A{}", *command_number);
     let full_command = format!("{} FETCH {} ENVELOPE \r\n", command_id, &message_num);
     send_command(stream, full_command);
     
+    /* read the response */
     let mut response = String::new();
     let mut reader = BufReader::new(stream.try_clone().expect("error cloning stream"));
     let resp  = read_response_object(&mut reader, &mut response, command_id.clone());
 
+
+    /* read the emai output to the envelope struct */
     let Ok(Response {response_components, response_done: ResponseDone::ResponseTagged(resp_tag)}) =  resp else {exit_server_response();};
     match resp_tag {
         ResponseTagged {resp_cond_state:RespCondState::Ok(_),tag:Tag { chars }} if chars == command_id => {}
@@ -31,12 +46,14 @@ pub fn parse_command(stream: &mut TcpStream, message_num: &mut String, command_n
     let Some(ResponseComponent::ResponseData(ResponseData::MessageData(MessageData {message_data_component: MessageDataComponent::Fetch(msg_att_components) ,..}))) = response_components.get(0) else {exit_parsing_with("prea".to_string());};
     let Some(MsgAttComponent::MsgAttStatic(MsgAttStatic::Envelope(Envelope { env_date, env_subject, env_from, env_to, .. }))) = msg_att_components.get(0) else {exit_parsing_with("a".to_string());};
     *command_number += 1;
-    //output envelope
+
+    /* set up the formatting */
     let addresses_from = &env_from.address;
     let mut formatted_mailbox_name:String = String::new();
     let mut formatted_mailbox:String = String::new();
 
 
+    /* format the from addresses */
     for i in addresses_from {
         if (i.addr_name.as_ref().unwrap_or(&"NIL".to_string())) != &"NIL".to_string() {
             formatted_mailbox_name.push_str(&format!("\"{}\"", i.addr_name.as_ref().unwrap_or(&"NIL".to_string())));
@@ -46,11 +63,12 @@ pub fn parse_command(stream: &mut TcpStream, message_num: &mut String, command_n
         formatted_mailbox.push_str(i.addr_host.as_ref().unwrap_or(&"NIL".to_string()));
     }
 
+    /* set up formatting for to addresses */
     let addresses_to = &env_to.address;
     let mut formatted_mailbox_name_to:String = String::new();
     let mut formatted_mailbox_to:String = String::new();
 
-
+    /* format the to addresses */
     for i in addresses_to {
         if (i.addr_name.as_ref().unwrap_or(&"NIL".to_string())) != &"NIL".to_string() {
             formatted_mailbox_name_to.push_str(i.addr_name.as_ref().unwrap_or(&"NIL".to_string()));
@@ -60,7 +78,7 @@ pub fn parse_command(stream: &mut TcpStream, message_num: &mut String, command_n
         formatted_mailbox_to.push_str(i.addr_host.as_ref().unwrap_or(&"NIL".to_string()));
     }
 
-    eprintln!("{:?}", env_from.address);
+    /* print as spec specifies */
     if formatted_mailbox_name != "" {
         println!("From: {} <{}>",formatted_mailbox_name, formatted_mailbox);
     }

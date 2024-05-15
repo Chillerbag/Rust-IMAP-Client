@@ -1,10 +1,13 @@
-use std::net::TcpStream;
-use std::io::BufReader;
-use super::send_and_receive::send_command;
-use std::process;
+// our function imports
 use crate::helpers::exiting::exit_parsing;
 use crate::helpers::sanitisation::sanitise_string_to_literal;
 use crate::helpers::send_and_receive::read_response_object;
+use super::send_and_receive::send_command;
+
+// rust std imports
+use std::net::TcpStream;
+use std::io::BufReader;
+use std::process;
 
 
 
@@ -40,8 +43,6 @@ pub fn login_command(stream: &mut TcpStream, username: &str, password: &str, fol
     let command_id_2 = format!("A{}", *command_number);
 
     // ------------------------- selecting the folder ----------------------------
-
-
     // write select folder command to server
     let full_command = format!("{} SELECT {}\r\n", command_id_2, sanitise_string_to_literal(folder));
     send_command(stream, full_command);
