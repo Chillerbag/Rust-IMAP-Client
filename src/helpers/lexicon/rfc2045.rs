@@ -1,17 +1,22 @@
+
+#[derive(Debug)]
 pub(crate) struct Field {
-    field_name : FieldName,
-    field_body : Option<FieldBody>
+    pub(crate) field_name : FieldName,
+    pub(crate) field_body : Option<FieldBody>
 }
 
-struct FieldName {
-    chars: String
+#[derive(Debug)]
+pub(crate) struct FieldName {
+    pub(crate) chars: String
 } 
 
-struct FieldBody {
-    field_body_contents:FieldBodyContents ,
-    next_field_body: Option<Box<FieldBody>>
+#[derive(Debug)]
+pub(crate) struct FieldBody {
+    pub(crate) field_body_contents:FieldBodyContents ,
+    pub(crate) next_field_body: Option<Box<FieldBody>>
 }
 
-struct  FieldBodyContents {
-    ascii:String
+#[derive(Debug)]
+pub(crate) struct FieldBodyContents {
+    pub(crate) ascii:String
 }

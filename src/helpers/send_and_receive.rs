@@ -64,9 +64,7 @@ pub fn read_response_object(reader: &mut BufReader<TcpStream>, buffer: &mut Stri
         if line_buffer.starts_with("* BYE") {
             break;
         }
-        
     }
-    eprintln!("{}",buffer.to_string());
     parse_response(buffer.to_string())
 
 }

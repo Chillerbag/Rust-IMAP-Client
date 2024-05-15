@@ -466,7 +466,7 @@ impl DecodeProtocol for ResponseData {
 
     fn parse_new(s:String) -> Result<(String,ResponseData),String> {
         let mut remaining_string = remove_start("* ",s)?;
-        let mut rd = Err("No response data component");
+        let mut rd = Err("ResponseData parsing failure:No response data component");
         match remaining_string.to_string() {
             s if RespCondBye::can_parse(s.to_string()) => {
                 let (rs,next_part) =  RespCondBye::parse_new(s.to_string())?;
@@ -483,7 +483,7 @@ impl DecodeProtocol for ResponseData {
                 remaining_string = rs;
                 rd = Ok(ResponseData::MessageData(next_part));
             }
-            _ => {return Err("ResponseData parsing failure".to_string());}
+            _ => {}
         }
         let rest = remove_start("\r\n",remaining_string.to_string())?;
         Ok((rest.to_string(),rd?))

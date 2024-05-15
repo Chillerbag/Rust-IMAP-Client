@@ -11,7 +11,7 @@ rather than operate selectively. this is bad practice.
 */
 
 #[allow(dead_code)]
-#[allow(unused_assignments)] // potentially temp
+pub mod rfc2045;
 pub mod rfc3501;
 
 #[allow(dead_code)]
