@@ -30,16 +30,21 @@ pub fn parse_command(stream: &mut TcpStream, message_num: &mut String, command_n
 
 
     /* read the emai output to the envelope struct */
+
+    // read into response_components
     let Ok(Response {response_components, response_done: ResponseDone::ResponseTagged(resp_tag)}) =  resp else {exit_server_response();};
     match resp_tag {
+        // handle different responses from server
         ResponseTagged {resp_cond_state:RespCondState::Ok(_),tag:Tag { chars }} if chars == command_id => {}
         ResponseTagged {resp_cond_state:RespCondState::Ok(_),..} => {exit_server_response_with("Incorrect command id".to_string())}
         ResponseTagged {resp_cond_state:RespCondState::Bad(_),..} => {
             exit_server_response_with("Message not found".to_string());
         }
+        // handle dead server
         ResponseTagged {resp_cond_state:RespCondState::No(_),..} => {
             exit_server_response_with("Server Communication error with sent command".to_string());}
     }
+    // handle no header
     if response_components.len() <=0 {
         exit_other("No email header".to_string())
     }

@@ -7,7 +7,6 @@ use crate::helpers::exiting::*;
 use std::net::TcpStream;
 use std::io::BufReader;
 
-
 /*
 -------------------LIST_COMMAND------------------
 SEND the command FETCH 1:* ENVELOPE to get all the 
@@ -33,14 +32,17 @@ pub fn list_command(stream: &mut TcpStream, command_number: &mut u32) {
     // read into responsecomponents
     let Ok(Response {response_components, response_done: ResponseDone::ResponseTagged(resp_tag)}) =  resp else {exit_server_response();};
     match resp_tag {
+        // deal with the different responses to the command
         ResponseTagged {resp_cond_state:RespCondState::Ok(_),tag:Tag { chars }} if chars == command_id => {}
         ResponseTagged {resp_cond_state:RespCondState::Ok(_),..} => {exit_server_response_with("Incorrect command id".to_string())}
         ResponseTagged {resp_cond_state:RespCondState::Bad(_),..} => {
             exit_server_response_with("Message not found".to_string());
         }
+        // deal with dead server
         ResponseTagged {resp_cond_state:RespCondState::No(_),..} => {
             exit_server_response_with("Server Communication error with sent command".to_string());}
     }
+    // deal with no header
     if response_components.len() <=0 {
         exit_other("No email header".to_string())
     }
