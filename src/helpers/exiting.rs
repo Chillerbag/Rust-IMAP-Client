@@ -1,3 +1,13 @@
+
+/*
+-------------------EXITING.RS-------------------
+A set of functions that make it easy and clear
+as to what message and code we exit with
+publically accessible so we can exit this way 
+without having to reuse code. 
+-------------------------------------------------
+*/
+
 use std::process;
 
 pub(crate) fn exit_command_line() -> ! {

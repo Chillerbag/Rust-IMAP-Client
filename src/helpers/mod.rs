@@ -1,3 +1,5 @@
+// MODULE CONTENTS FOR HELPERS
+
 pub mod command_executor;
 pub mod send_and_receive;
 pub mod socket_maker;

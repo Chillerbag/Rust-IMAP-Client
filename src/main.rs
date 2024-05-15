@@ -14,9 +14,6 @@ use std::env;
 use std::net::Shutdown;
 use std::process;
 
-
-
-
 /* 
 -------------------FETCHMAIL-------------------
 The structure of the solution is as follows

@@ -17,7 +17,7 @@ pub(crate) struct Address {
 }
 
 #[derive(Debug)]
-pub(crate) struct env_NAddress {
+pub(crate) struct EnvNAddress {
     pub(crate) address:Vec<Address>
 }
 
@@ -100,12 +100,12 @@ pub(crate) enum MsgAttStatic {
 pub(crate) struct Envelope {
     pub(crate) env_date:NString,
     pub(crate) env_subject:NString,
-    pub(crate) env_from:env_NAddress,
-    pub(crate) env_sender:env_NAddress,
-    pub(crate) env_reply_to:env_NAddress,
-    pub(crate) env_to:env_NAddress,
-    pub(crate) env_cc:env_NAddress,
-    pub(crate) env_bcc:env_NAddress,
+    pub(crate) env_from:EnvNAddress,
+    pub(crate) env_sender:EnvNAddress,
+    pub(crate) env_reply_to:EnvNAddress,
+    pub(crate) env_to:EnvNAddress,
+    pub(crate) env_cc:EnvNAddress,
+    pub(crate) env_bcc:EnvNAddress,
     pub(crate) env_in_reply_to:NString,
     pub(crate) env_message_id:NString,
 }

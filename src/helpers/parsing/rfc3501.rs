@@ -10,11 +10,11 @@ pub(crate) fn parse_response(s:String) -> Result<Response,String> {
 }
 
 impl DecodeProtocol for Base64 {
-    fn can_parse(s:String) -> bool {
+    fn can_parse(_s:String) -> bool {
         todo!()
     }
 
-    fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
+    fn parse_new(_s:String) -> Result<(String,Self),String> where Self: Sized {
         todo!()
     }
 }
@@ -44,7 +44,7 @@ impl DecodeProtocol for ContinueReq {
     }
 }
 
-impl DecodeProtocol for env_NAddress {
+impl DecodeProtocol for EnvNAddress {
     fn can_parse(s:String) -> bool {
         s.starts_with("(") ||  s.starts_with("NIL")
     }
@@ -52,7 +52,7 @@ impl DecodeProtocol for env_NAddress {
         if s.starts_with("NIL") {
             let rest = remove_start("NIL", s)?;
             let addresses:Vec<Address> = Vec::new();
-            return Ok((rest, env_NAddress { address: addresses}))
+            return Ok((rest, EnvNAddress { address: addresses}))
         }
         match s {
             s if s.starts_with("(") => {
@@ -84,7 +84,7 @@ impl DecodeProtocol for env_NAddress {
                     return Err("Invalid format: ')' not found".to_string());
                 }
                 
-                Ok((rest, env_NAddress { address: addresses}))
+                Ok((rest, EnvNAddress { address: addresses}))
             }
             _ => Err("Envelope parsing failure".to_string())
         }
@@ -102,17 +102,17 @@ impl DecodeProtocol for Envelope {
         let rest = remove_start(" ", rest)?;
         let (rest,env_subject) = NString::parse_new(rest)?;
         let rest = remove_start(" ", rest)?;
-        let (rest,env_from) = env_NAddress::parse_new(rest)?;
+        let (rest,env_from) = EnvNAddress::parse_new(rest)?;
         let rest = remove_start(" ", rest)?;
-        let (rest,env_sender) = env_NAddress::parse_new(rest)?;
+        let (rest,env_sender) = EnvNAddress::parse_new(rest)?;
         let rest = remove_start(" ", rest)?;
-        let (rest,env_reply_to) = env_NAddress::parse_new(rest)?;
+        let (rest,env_reply_to) = EnvNAddress::parse_new(rest)?;
         let rest = remove_start(" ", rest)?;
-        let (rest,env_to) = env_NAddress::parse_new(rest)?;
+        let (rest,env_to) = EnvNAddress::parse_new(rest)?;
         let rest = remove_start(" ", rest)?;
-        let (rest,env_cc) = env_NAddress::parse_new(rest)?;
+        let (rest,env_cc) = EnvNAddress::parse_new(rest)?;
         let rest = remove_start(" ", rest)?;
-        let (rest,env_bcc) = env_NAddress::parse_new(rest)?;
+        let (rest,env_bcc) = EnvNAddress::parse_new(rest)?;
         let rest = remove_start(" ", rest)?;
         let (rest,env_in_reply_to) = NString::parse_new(rest)?;
         let rest = remove_start(" ", rest)?;
@@ -218,11 +218,11 @@ impl DecodeProtocol for MsgAtt {
 }
 
 impl DecodeProtocol for MsgAttDynamic {
-    fn can_parse(s:String) -> bool {
+    fn can_parse(_s:String) -> bool {
         todo!()
     }
 
-    fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
+    fn parse_new(_s:String) -> Result<(String,Self),String> where Self: Sized {
         todo!()
     }
 }
@@ -261,7 +261,7 @@ impl DecodeProtocol for MsgAttStatic {
                 let (rest,part) = MsgAttStaticBodyNonStructuredComponent::parse_new(s)?;
                 Ok((rest,MsgAttStatic::NonStructuredBody(part)))
             }
-            _ => {todo!();Err("RespCondState didn't match".to_string())}
+            _ => {todo!();}
             
         }
     }
@@ -272,9 +272,9 @@ impl DecodeProtocol for MsgAttStaticBodyStructuredComponent {
         s.starts_with("BODY ") || s.starts_with("BODYSTRUCTURE ")
     }
 
-    fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
+    fn parse_new(_s:String) -> Result<(String,Self),String> where Self: Sized {
         todo!();
-        let mut structure = false;
+        //let mut structure = false;
         // match s {
         //     s if s.starts_with("BODY ") => {
         //         let rest = remove_start("RFC822 ", s)?;
@@ -367,11 +367,11 @@ impl DecodeProtocol for NString {
 }
 
 impl DecodeProtocol for MsgAttStaticRFC822Component {
-    fn can_parse(s:String) -> bool {
+    fn can_parse(_s:String) -> bool {
         todo!()
     }
 
-    fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
+    fn parse_new(_s:String) -> Result<(String,Self),String> where Self: Sized {
         todo!()
     }
 }
@@ -539,7 +539,7 @@ impl DecodeProtocol for ResponseTagged {
 }
 
 impl DecodeProtocol for RespText {
-    fn can_parse(s:String) -> bool {
+    fn can_parse(_s:String) -> bool {
         true
     }
 
@@ -743,7 +743,7 @@ impl DecodeProtocol for AString {
 }
 
 impl DecodeProtocol for Tag {
-    fn can_parse(s:String) -> bool {
+    fn can_parse(_s:String) -> bool {
         true
     }
 
