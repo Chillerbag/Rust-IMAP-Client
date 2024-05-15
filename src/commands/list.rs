@@ -16,7 +16,7 @@ pub fn list_command(stream: &mut TcpStream, command_number: &mut u32) {
     let resp  = read_response_object(&mut reader, &mut response, command_id.clone());
 
     let Ok(Response {response_components, response_done: ResponseDone::ResponseTagged(resp_tag)}) =  resp else {exit_server_response();};
-    match (resp_tag) {
+    match resp_tag {
         ResponseTagged {resp_cond_state:RespCondState::Ok(_),tag:Tag { chars }} if chars == command_id => {}
         ResponseTagged {resp_cond_state:RespCondState::Ok(_),..} => {exit_server_response_with("Incorrect command id".to_string())}
         ResponseTagged {resp_cond_state:RespCondState::Bad(_),..} => {

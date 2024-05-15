@@ -1,9 +1,8 @@
 use std::net::TcpStream;
 use std::io::BufReader;
-use std::process;
 use crate::commands::send_and_receive::*;
 use crate::helpers::lexicon::rfc3501::*;
-use crate::helpers::{exiting::*, lexicon::*};
+use crate::helpers::exiting::*;
 
 
 pub fn parse_command(stream: &mut TcpStream, message_num: &mut String, command_number: &mut u32) {
@@ -17,7 +16,7 @@ pub fn parse_command(stream: &mut TcpStream, message_num: &mut String, command_n
     let resp  = read_response_object(&mut reader, &mut response, command_id.clone());
 
     let Ok(Response {response_components, response_done: ResponseDone::ResponseTagged(resp_tag)}) =  resp else {exit_server_response();};
-    match (resp_tag) {
+    match resp_tag {
         ResponseTagged {resp_cond_state:RespCondState::Ok(_),tag:Tag { chars }} if chars == command_id => {}
         ResponseTagged {resp_cond_state:RespCondState::Ok(_),..} => {exit_server_response_with("Incorrect command id".to_string())}
         ResponseTagged {resp_cond_state:RespCondState::Bad(_),..} => {

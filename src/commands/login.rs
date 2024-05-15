@@ -1,10 +1,10 @@
 use std::net::TcpStream;
 use std::io::BufReader;
-use super::send_and_receive::read_response;
 use super::send_and_receive::send_command;
 use std::process;
 use crate::helpers::exiting::exit_parsing;
 use crate::helpers::sanitisation::sanitise_string_to_literal;
+use crate::helpers::send_and_receive::read_response_object;
 
 
 
@@ -16,7 +16,7 @@ pub fn login_command(stream: &mut TcpStream, username: &str, password: &str, fol
     // -------------------------------- logging in --------------------------------
 
     // read the initial response to the connection
-    read_response(& mut reader, &mut response, "*".to_string());
+    let _ = read_response_object(& mut reader, &mut response, "*".to_string());
     response.clear();
 
     let command_id = format!("A{}", *command_number);
@@ -25,7 +25,7 @@ pub fn login_command(stream: &mut TcpStream, username: &str, password: &str, fol
     send_command(stream, full_command);
 
     // Read server response until end of line
-    read_response(& mut reader, &mut response, command_id.clone());
+    let _ = read_response_object(& mut reader, &mut response, command_id.clone());
     let Some(response_done) = response.rsplit("\r\n").skip(1).next() else {exit_parsing()};
     // check if login is invalid 
     let err_no_folder: String = format!("{} NO", command_id);
@@ -47,7 +47,7 @@ pub fn login_command(stream: &mut TcpStream, username: &str, password: &str, fol
     send_command(stream, full_command);
 
     // Read server response to selecting folder
-    read_response(& mut reader, &mut response, command_id_2.clone());
+    let _ = read_response_object(& mut reader, &mut response, command_id_2.clone());
 
     // check if folder doesn't exist
     let Some(response_done) = response.rsplit("\r\n").skip(1).next() else {exit_parsing()};

@@ -5,11 +5,6 @@ pub(crate) fn exit_command_line() -> ! {
     process::exit(1)
 }
 
-pub(crate) fn exit_connection() -> ! {
-    println!("Connection failure");
-    process::exit(2)
-}
-
 pub(crate) fn exit_server_response() -> ! {
     println!("Server response failure");
     process::exit(3)

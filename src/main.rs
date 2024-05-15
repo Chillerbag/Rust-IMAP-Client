@@ -23,6 +23,8 @@ The structure of the solution is as follows
 
 1) Commands - This contains all the different commands the spec requires us to send
 2) Helpers - these are all functions that allow us to send commands and interpret results
+3) helpers/lexicon - where we keep the defined IMAP responses as per rfc 3501 section 9 - we ensure we receive every part of every response
+4) helpers/parse - where we parse responses into the lexicon structures.
 
 Program execution:
 - We setup the socket and command variables
