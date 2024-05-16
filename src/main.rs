@@ -3,6 +3,8 @@
 mod helpers;
 mod commands; 
 use helpers::exiting::exit_command_line;
+use helpers::lexicon::rfc3501::AString;
+use helpers::parsing::general::DecodeProtocol;
 use helpers::send_and_receive::{read_response_object, send_command};
 use helpers::socket_maker::make_socket;
 use helpers::command_executor::execute_command;
@@ -101,9 +103,22 @@ fn main() {
     if arg_check != 4 {
         exit_command_line();
     }
-    if !message_num.parse::<u64>().is_ok() {
+    //message number should only be seq-number
+    if !message_num.parse::<u32>().is_ok() {
         exit_command_line()
     }
+    //username should only be astring
+    let password_check = AString::parse_new(password.clone());
+    if password_check.is_ok() && password_check.unwrap().0.is_empty() {
+        exit_command_line()
+    }
+    
+    //password should only be astring
+    let username_check = AString::parse_new(username.clone());
+    if username_check.is_ok() && username_check.unwrap().0.is_empty() {
+        exit_command_line()
+    }
+    
 
     /*---- MAKE THE SOCKET ---- */
     let mut socket = make_socket(server_name).unwrap_or_else( |e| {
