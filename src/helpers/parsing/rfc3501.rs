@@ -327,7 +327,7 @@ impl DecodeProtocol for String {
                 let rest = remove_start("{", s)?;
                 let (rest,number) = Number::parse_new(rest)?;
                 let rest = remove_start("}\r\n", rest)?;
-                let (string,rest) = rest.split_at(number.try_into().unwrap());
+                let (string,rest) = rest.split_at(number.try_into()?);
                 Ok((rest.to_string(), string.to_string()))
             }
             //quoted
@@ -383,7 +383,7 @@ impl DecodeProtocol for NzNumber {
 
     fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
         let (fs,ss) = s.split_at(s.chars().position(|c| !c.is_digit(10)).unwrap_or(s.len()));
-        let number = fs.parse::<u32>().unwrap();
+        let number = fs.parse::<u32>()?;
         Ok((ss.to_string(),number))
     }
 }
@@ -564,7 +564,7 @@ impl DecodeProtocol for RespTextCode {
     }
 
     fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
-        let (_code,rest) = s.split_once("] ").unwrap();
+        let (_code,rest) = s.split_once("] ")?;
         Ok((rest.to_string(),RespTextCode::Alert))
         // TODO:care about the right code
     }

@@ -4,6 +4,8 @@ use crate::commands::{mime::mime_command, parse::parse_command, retrieve::retrie
 // rust std imports
 use std::net::TcpStream;
 
+use super::exiting::exit_command_line;
+
 /*
 -------------------EXECUTE_COMMAND---------------
 function used in main to generally execute the functions
@@ -18,7 +20,7 @@ pub fn execute_command(stream :&mut TcpStream, message_num: &mut String, command
         "parse"=>parse_command(stream, message_num, command_number),
         "mime"=>mime_command(stream, message_num, command_number),
         "list"=>list_command(stream, command_number),
-        _=>()
+        _=>exit_command_line()
     }
 }
 

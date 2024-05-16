@@ -10,13 +10,13 @@ pub(crate) struct FieldName {
     pub(crate) chars: String
 } 
 
-#[derive(Debug)]
+#[derive(Clone,Debug)]
 pub(crate) struct FieldBody {
     pub(crate) field_body_contents:FieldBodyContents ,
     pub(crate) next_field_body: Option<Box<FieldBody>>
 }
 
-#[derive(Debug)]
+#[derive(Clone,Debug)]
 pub(crate) struct FieldBodyContents {
     pub(crate) ascii:String
 }

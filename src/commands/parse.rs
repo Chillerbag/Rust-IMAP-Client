@@ -1,11 +1,10 @@
+use crate::commands::retrieve::do_fetch_interaction;
 // our function imports
-use crate::commands::send_and_receive::*;
 use crate::helpers::lexicon::rfc3501::*;
 use crate::helpers::exiting::*;
 
 // rust std imports
 use std::net::TcpStream;
-use std::io::BufReader;
 
 
 /*
@@ -19,35 +18,7 @@ pub fn parse_command(stream: &mut TcpStream, message_num: &mut String, command_n
     eprintln!("Parse command");
 
     /* format and send the command */
-    let command_id = format!("A{}", *command_number);
-    let full_command = format!("{} FETCH {} ENVELOPE \r\n", command_id, &message_num);
-    send_command(stream, full_command);
-    
-    /* read the response */
-    let mut response = String::new();
-    let mut reader = BufReader::new(stream.try_clone().expect("error cloning stream"));
-    let resp  = read_response_object(&mut reader, &mut response, command_id.clone());
-
-
-    /* read the emai output to the envelope struct */
-
-    // read into response_components
-    let Ok(Response {response_components, response_done: ResponseDone::ResponseTagged(resp_tag)}) =  resp else {exit_server_response();};
-    match resp_tag {
-        // handle different responses from server
-        ResponseTagged {resp_cond_state:RespCondState::Ok(_),tag:Tag { chars }} if chars == command_id => {}
-        ResponseTagged {resp_cond_state:RespCondState::Ok(_),..} => {exit_server_response_with("Incorrect command id".to_string())}
-        ResponseTagged {resp_cond_state:RespCondState::Bad(_),..} => {
-            exit_server_response_with("Message not found".to_string());
-        }
-        // handle dead server
-        ResponseTagged {resp_cond_state:RespCondState::No(_),..} => {
-            exit_server_response_with("Server Communication error with sent command".to_string());}
-    }
-    // handle no header
-    if response_components.len() <=0 {
-        exit_other("No email header".to_string())
-    }
+    let response_components = do_fetch_interaction(stream, "ENVELOPE", message_num, command_number);
     let Some(ResponseComponent::ResponseData(ResponseData::MessageData(MessageData {message_data_component: MessageDataComponent::Fetch(msg_att_components) ,..}))) = response_components.get(0) else {exit_parsing_with("prea".to_string());};
     let Some(MsgAttComponent::MsgAttStatic(MsgAttStatic::Envelope(Envelope { env_date, env_subject, env_from, env_to, .. }))) = msg_att_components.get(0) else {exit_parsing_with("a".to_string());};
     *command_number += 1;

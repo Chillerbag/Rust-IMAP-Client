@@ -1,6 +1,23 @@
-use crate::helpers::lexicon::rfc2045::*;
+use crate::helpers::{exiting::exit_parsing, lexicon::rfc2045::*};
 
 use super::general::{remove_start, DecodeProtocol};
+
+
+// gets the headers at the start of a message and returns our DecodeProtocol API interface of them
+pub(crate) fn get_headers(string: String) -> (String,Vec<Field>) {
+    let mut rest = string;
+    let mut headers= Vec::new();
+    while Field::can_parse(rest.to_string()) {
+        let Ok((rs,part)) = Field::parse_new(rest.to_string()) else {exit_parsing();};
+        rest = rs;
+        headers.push(part);
+    }
+    if rest != "" {
+        let Ok(rs) = remove_start("\r\n",rest)  else {exit_parsing();};
+        rest = rs
+    }
+    (rest,headers)
+}
 
 
 impl DecodeProtocol for Field {
@@ -12,8 +29,10 @@ impl DecodeProtocol for Field {
         let mut rest = s;
         let mut field_body = None;
         let (rs, field_name) = FieldName::parse_new(rest)?;
-        let rs = remove_start(":", rs)?;
-        rest = rs;
+        rest = remove_start(":", rs)?;
+        if rest.starts_with(" ") {
+            rest = remove_start(" ", rest)?;
+        }
         if FieldBody::can_parse(rest.to_string()) {
             let (rs,part) = FieldBody::parse_new(rest)?;
             rest = rs;
