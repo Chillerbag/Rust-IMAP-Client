@@ -109,13 +109,13 @@ fn main() {
     }
     //username should only be astring
     let password_check = AString::parse_new(password.clone());
-    if password_check.is_ok() && password_check.unwrap().0.is_empty() {
+    if !password_check.is_ok() || !password_check.unwrap().0.is_empty() {
         exit_command_line()
     }
     
     //password should only be astring
     let username_check = AString::parse_new(username.clone());
-    if username_check.is_ok() && username_check.unwrap().0.is_empty() {
+    if !username_check.is_ok() || !username_check.unwrap().0.is_empty() {
         exit_command_line()
     }
     
