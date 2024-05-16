@@ -101,6 +101,9 @@ fn main() {
     if arg_check != 4 {
         exit_command_line();
     }
+    if !message_num.parse::<u64>().is_ok() {
+        exit_command_line()
+    }
 
     /*---- MAKE THE SOCKET ---- */
     let mut socket = make_socket(server_name).unwrap_or_else( |e| {
