@@ -327,7 +327,8 @@ impl DecodeProtocol for String {
                 let rest = remove_start("{", s)?;
                 let (rest,number) = Number::parse_new(rest)?;
                 let rest = remove_start("}\r\n", rest)?;
-                let (string,rest) = rest.split_at(number.try_into()?);
+                // unwrap is OK unless on 16 bit or lower system
+                let (string,rest) = rest.split_at(number.try_into().unwrap());
                 Ok((rest.to_string(), string.to_string()))
             }
             //quoted
@@ -378,12 +379,12 @@ impl DecodeProtocol for MsgAttStaticRFC822Component {
 
 impl DecodeProtocol for NzNumber {
     fn can_parse(s:String) -> bool {
-        s.split(" ").next().unwrap_or("a").parse::<i64>().is_ok()
+        s.split(" ").next().unwrap_or("a").parse::<u32>().is_ok()
     }
 
     fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
         let (fs,ss) = s.split_at(s.chars().position(|c| !c.is_digit(10)).unwrap_or(s.len()));
-        let number = fs.parse::<u32>()?;
+        let Ok(number) = fs.parse::<u32>() else {return Err("Invalid Nznumber value".to_string())} ;
         Ok((ss.to_string(),number))
     }
 }
@@ -564,7 +565,7 @@ impl DecodeProtocol for RespTextCode {
     }
 
     fn parse_new(s:String) -> Result<(String,Self),String> where Self: Sized {
-        let (_code,rest) = s.split_once("] ")?;
+        let rest = remove_start("] ", s)?;
         Ok((rest.to_string(),RespTextCode::Alert))
         // TODO:care about the right code
     }
