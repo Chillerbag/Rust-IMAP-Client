@@ -104,7 +104,7 @@ fn main() {
         exit_command_line();
     }
     //message number should only be seq-number
-    if !message_num.parse::<u32>().is_ok() {
+    if !message_num.is_empty() && !message_num.parse::<u32>().is_ok() {
         exit_command_line()
     }
     //username should only be astring
