@@ -11,3 +11,4 @@ vendor:
 
 clean :
 	$(RM) fetchmail
+	$(RM) -r target/
