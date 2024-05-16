@@ -1,5 +1,5 @@
 use std::net::TcpStream;
-use crate::{commands::retrieve::{do_fetch_interaction, get_body_from_response_components}, helpers::{exiting::*, lexicon::rfc2045::*, parsing::{general::{remove_start, DecodeProtocol}, rfc2045::get_headers}}};
+use crate::{commands::retrieve::{do_fetch_interaction, get_body_from_response_components}, helpers::{exiting::*, lexicon::rfc2045::*, parsing::{general::remove_start, rfc2045::get_headers}}};
 
 
 /*
