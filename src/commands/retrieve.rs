@@ -36,8 +36,7 @@ pub(crate) fn do_fetch_interaction(stream: &mut TcpStream, fetch_att : &str ,  m
     // Read server response
     
     let mut response = String::new();
-    let mut reader = BufReader::new(stream.try_clone().expect("error cloning stream"));
-    let resp = read_response_object(&mut reader, &mut response, command_id.clone());
+    let resp = read_response_object( stream.try_clone().expect("error cloning stream"), &mut response, &command_id);
     // convert the response to a response_components object
     let Ok(Response {response_components, response_done: ResponseDone::ResponseTagged(resp_tag)}) =  resp else {exit_server_response();};
     match resp_tag {

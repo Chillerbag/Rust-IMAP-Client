@@ -139,10 +139,9 @@ fn main() {
     /*---- CLEANING UP ---- */
     let command_id = format!("A{}", command_number);
     command = format!("{} LOGOUT \r\n", command_id);
-    let mut reader = BufReader::new(socket.try_clone().expect("error cloning stream"));
     let mut response = String::new();
     send_command(&mut socket, command); // disconnect from IMAP server
-    let _ = read_response_object(&mut reader, &mut response, command_id);
+    let _ = read_response_object(socket.try_clone().expect("error cloning stream"), &mut response, &command_id);
     let _ = socket.shutdown(Shutdown::Both);
     
 

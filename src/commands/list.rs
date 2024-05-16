@@ -26,8 +26,7 @@ pub fn list_command(stream: &mut TcpStream, command_number: &mut u32) {
     
     /* defining whats needed to read the buffer then reading */
     let mut response = String::new();
-    let mut reader = BufReader::new(stream.try_clone().expect("error cloning stream"));
-    let resp  = read_response_object(&mut reader, &mut response, command_id.clone());
+    let resp = read_response_object( stream.try_clone().expect("error cloning stream"), &mut response, &command_id);
 
     // read into responsecomponents
     let Ok(Response {response_components, response_done: ResponseDone::ResponseTagged(resp_tag)}) =  resp else {exit_server_response();};

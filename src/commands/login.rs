@@ -19,7 +19,8 @@ pub fn login_command(stream: &mut TcpStream, username: &str, password: &str, fol
     // -------------------------------- logging in --------------------------------
 
     // read the initial response to the connection
-    let _ = read_response_object(& mut reader, &mut response, "*".to_string());
+    let mut response = String::new();
+    let resp = read_response_object( stream.try_clone().expect("error cloning stream"), &mut response, "*");
     response.clear();
 
     let command_id = format!("A{}", *command_number);
@@ -28,7 +29,8 @@ pub fn login_command(stream: &mut TcpStream, username: &str, password: &str, fol
     send_command(stream, full_command);
 
     // Read server response until end of line
-    let _ = read_response_object(& mut reader, &mut response, command_id.clone());
+    let mut response = String::new();
+    let resp = read_response_object( stream.try_clone().expect("error cloning stream"), &mut response, &command_id);
     let Some(response_done) = response.rsplit("\r\n").skip(1).next() else {exit_parsing()};
     // check if login is invalid 
     let err_no_folder: String = format!("{} NO", command_id);
@@ -48,7 +50,9 @@ pub fn login_command(stream: &mut TcpStream, username: &str, password: &str, fol
     send_command(stream, full_command);
 
     // Read server response to selecting folder
-    let _ = read_response_object(& mut reader, &mut response, command_id_2.clone());
+    let mut response = String::new();
+    let _ = read_response_object( stream.try_clone().expect("error cloning stream"), &mut response,&command_id_2);
+    
 
     // check if folder doesn't exist
     let Some(response_done) = response.rsplit("\r\n").skip(1).next() else {exit_parsing()};
